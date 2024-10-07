@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 import pygame
 
 pygame.init()
@@ -90,7 +89,7 @@ while running:
     clock.tick(60)
 
 pygame.quit()
-=======
+
 import pygame
 import time
 
@@ -286,4 +285,3 @@ while running:
     clock.tick(60)
 
 pygame.quit()
->>>>>>> 49bdd0e (feat : Initial Program)
