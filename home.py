@@ -6,25 +6,26 @@ pygame.init()
 
 # Constants
 TILE_SIZE = 32
-MAP_WIDTH = 40
-MAP_HEIGHT = 30
-SCREEN_WIDTH = MAP_WIDTH * TILE_SIZE
-SCREEN_HEIGHT = MAP_HEIGHT * TILE_SIZE
 FPS = 60
 
-# Colors
-BLACK = (0, 0, 0)
-WHITE = (255, 255, 255)
-
 # Create the screen
-screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
-pygame.display.set_caption("Character Walking Game")
+screen = pygame.display.set_mode((0, 0), pygame.FULLSCREEN)
+pygame.display.set_caption("The Atlas Protocol")
+
+# Update screen dimensions and map size
+SCREEN_WIDTH, SCREEN_HEIGHT = screen.get_size()
+MAP_WIDTH = SCREEN_WIDTH // TILE_SIZE
+MAP_HEIGHT = SCREEN_HEIGHT // TILE_SIZE
+
+# Load background image
+background_image = pygame.image.load(os.path.join("assets", "map1.png")).convert()
+background_image = pygame.transform.scale(background_image, (SCREEN_WIDTH, SCREEN_HEIGHT))
 
 class Character(pygame.sprite.Sprite):
     def __init__(self, x, y):
         super().__init__()
-        self.x = x
-        self.y = y
+        self.x = MAP_WIDTH // 2
+        self.y = MAP_HEIGHT // 2
         self.direction = "down"
         self.frame = 0
         self.animation_speed = 0.2
@@ -32,8 +33,8 @@ class Character(pygame.sprite.Sprite):
         self.load_images()
         self.image = self.standing_image
         self.rect = self.image.get_rect()
-        self.rect.x = x * TILE_SIZE
-        self.rect.y = y * TILE_SIZE
+        self.rect.x = self.x * TILE_SIZE
+        self.rect.y = self.y * TILE_SIZE
         self.target_x = self.rect.x
         self.target_y = self.rect.y
 
@@ -44,11 +45,11 @@ class Character(pygame.sprite.Sprite):
             "left": [],
             "right": []
         }
-        self.standing_image = pygame.image.load(os.path.join("images", "character_standing.png")).convert_alpha()
+        self.standing_image = pygame.image.load(os.path.join("character", "character_standing.png")).convert_alpha()
         
         for direction in self.images.keys():
-            for i in range(4):
-                img = pygame.image.load(os.path.join("images", f"character_{direction}_{i}.png")).convert_alpha()
+            for i in range(9):
+                img = pygame.image.load(os.path.join("character", f"character_{direction}_{i}.png")).convert_alpha()
                 self.images[direction].append(img)
 
     def move(self, dx, dy):
@@ -57,9 +58,9 @@ class Character(pygame.sprite.Sprite):
         elif dx > 0:
             self.direction = "right"
         elif dy < 0:
-            self.direction = "up"
-        elif dy > 0:
             self.direction = "down"
+        elif dy > 0:
+            self.direction = "up"
 
         new_x = self.x + dx
         new_y = self.y + dy
@@ -74,7 +75,7 @@ class Character(pygame.sprite.Sprite):
     def update(self):
         if self.moving:
             self.frame += self.animation_speed
-            if self.frame >= 4:
+            if self.frame >= 9:
                 self.frame = 0
 
             if self.rect.x < self.target_x:
@@ -95,7 +96,7 @@ class Character(pygame.sprite.Sprite):
             self.image = self.standing_image
 
 # Create character
-character = Character(MAP_WIDTH // 2, MAP_HEIGHT // 2)
+character = Character(0, 0)  # The actual position is set in the __init__ method now
 all_sprites = pygame.sprite.Group(character)
 
 # Game loop
@@ -107,7 +108,9 @@ while running:
         if event.type == pygame.QUIT:
             running = False
         elif event.type == pygame.KEYDOWN:
-            if event.key == pygame.K_UP:
+            if event.key == pygame.K_ESCAPE:
+                running = False
+            elif event.key == pygame.K_UP:
                 character.move(0, -1)
             elif event.key == pygame.K_DOWN:
                 character.move(0, 1)
@@ -118,7 +121,7 @@ while running:
 
     all_sprites.update()
 
-    screen.fill(WHITE)
+    screen.blit(background_image, (0, 0))
     all_sprites.draw(screen)
     pygame.display.flip()
 
