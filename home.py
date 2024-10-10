@@ -7,6 +7,7 @@ pygame.init()
 # Constants
 TILE_SIZE = 32
 FPS = 60
+MOVE_SPEED = 3  # Smaller step size to make movement smooth
 
 # Create the screen
 screen = pygame.display.set_mode((0, 0), pygame.FULLSCREEN)
@@ -35,8 +36,6 @@ class Character(pygame.sprite.Sprite):
         self.rect = self.image.get_rect()
         self.rect.x = self.x * TILE_SIZE
         self.rect.y = self.y * TILE_SIZE
-        self.target_x = self.rect.x
-        self.target_y = self.rect.y
 
     def load_images(self):
         self.images = {
@@ -57,40 +56,26 @@ class Character(pygame.sprite.Sprite):
             self.direction = "left"
         elif dx > 0:
             self.direction = "right"
-        elif dy < 0:
+        elif dy < 0:  # Fix for "up"
             self.direction = "down"
-        elif dy > 0:
+        elif dy > 0:  # Fix for "down"
             self.direction = "up"
 
-        new_x = self.x + dx
-        new_y = self.y + dy
+        # Check if movement would cross the boundaries
+        if 0 <= self.rect.x + dx * MOVE_SPEED <= SCREEN_WIDTH - self.rect.width:
+            self.rect.x += dx * MOVE_SPEED
+        if 0 <= self.rect.y + dy * MOVE_SPEED <= SCREEN_HEIGHT - self.rect.height:
+            self.rect.y += dy * MOVE_SPEED
 
-        if 0 <= new_x < MAP_WIDTH and 0 <= new_y < MAP_HEIGHT:
-            self.x = new_x
-            self.y = new_y
-            self.target_x = self.x * TILE_SIZE
-            self.target_y = self.y * TILE_SIZE
-            self.moving = True
+        # Set the character as moving if there's movement
+        self.moving = (dx != 0 or dy != 0)
 
     def update(self):
+        # Update character animation when moving
         if self.moving:
             self.frame += self.animation_speed
-            if self.frame >= 9:
+            if self.frame >= len(self.images[self.direction]):
                 self.frame = 0
-
-            if self.rect.x < self.target_x:
-                self.rect.x += 2
-            elif self.rect.x > self.target_x:
-                self.rect.x -= 2
-
-            if self.rect.y < self.target_y:
-                self.rect.y += 2
-            elif self.rect.y > self.target_y:
-                self.rect.y -= 2
-
-            if self.rect.x == self.target_x and self.rect.y == self.target_y:
-                self.moving = False
-
             self.image = self.images[self.direction][int(self.frame)]
         else:
             self.image = self.standing_image
@@ -110,14 +95,25 @@ while running:
         elif event.type == pygame.KEYDOWN:
             if event.key == pygame.K_ESCAPE:
                 running = False
-            elif event.key == pygame.K_UP:
-                character.move(0, -1)
-            elif event.key == pygame.K_DOWN:
-                character.move(0, 1)
-            elif event.key == pygame.K_LEFT:
-                character.move(-1, 0)
-            elif event.key == pygame.K_RIGHT:
-                character.move(1, 0)
+
+    # Handle continuous movement while the keys are held down
+    keys = pygame.key.get_pressed()
+    dx, dy = 0, 0
+    if keys[pygame.K_UP]:
+        dy = -1
+    elif keys[pygame.K_DOWN]:
+        dy = 1
+    if keys[pygame.K_LEFT]:
+        dx = -1
+    elif keys[pygame.K_RIGHT]:
+        dx = 1
+
+    # Call the original move function
+    character.move(dx, dy)
+
+    # If no movement keys are pressed, set moving to False
+    if dx == 0 and dy == 0:
+        character.moving = False
 
     all_sprites.update()
 
