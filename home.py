@@ -23,7 +23,7 @@ background_image = pygame.image.load(os.path.join("assets", "map1.png")).convert
 background_image = pygame.transform.scale(background_image, (SCREEN_WIDTH, SCREEN_HEIGHT))
 
 class Character(pygame.sprite.Sprite):
-    def __init__(self, x, y):
+    def __init__(self):
         super().__init__()
         self.x = MAP_WIDTH // 2
         self.y = MAP_HEIGHT // 2
@@ -56,9 +56,9 @@ class Character(pygame.sprite.Sprite):
             self.direction = "left"
         elif dx > 0:
             self.direction = "right"
-        elif dy < 0:  # Fix for "up"
+        elif dy < 0:
             self.direction = "down"
-        elif dy > 0:  # Fix for "down"
+        elif dy > 0:
             self.direction = "up"
 
         # Check if movement would cross the boundaries
@@ -81,7 +81,7 @@ class Character(pygame.sprite.Sprite):
             self.image = self.standing_image
 
 # Create character
-character = Character(0, 0)  # The actual position is set in the __init__ method now
+character = Character()
 all_sprites = pygame.sprite.Group(character)
 
 # Game loop
