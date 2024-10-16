@@ -5,28 +5,62 @@ import os
 pygame.init()
 
 # Constants
-TILE_SIZE = 32
+GRID_SIZE = 25
 FPS = 60
-MOVE_SPEED = 3  # Smaller step size to make movement smooth
+MOVE_SPEED = 2  # Pixels per frame when moving
+
+# Get the screen dimensions
+screen_info = pygame.display.Info()
+SCREEN_WIDTH = screen_info.current_w
+SCREEN_HEIGHT = screen_info.current_h
+GAME_AREA_SIZE = min(SCREEN_HEIGHT, SCREEN_WIDTH)  # Leave 200 pixels on the right
+
+# Calculate the game area size and position
+TILE_SIZE = GAME_AREA_SIZE // GRID_SIZE
+GAME_AREA_LEFT = 0
+GAME_AREA_TOP = (SCREEN_HEIGHT - GAME_AREA_SIZE) // 2
 
 # Create the screen
-screen = pygame.display.set_mode((0, 0), pygame.FULLSCREEN)
+screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT), pygame.FULLSCREEN)
 pygame.display.set_caption("The Atlas Protocol")
 
-# Update screen dimensions and map size
-SCREEN_WIDTH, SCREEN_HEIGHT = screen.get_size()
-MAP_WIDTH = SCREEN_WIDTH // TILE_SIZE
-MAP_HEIGHT = SCREEN_HEIGHT // TILE_SIZE
-
+# Create the grid (all 0s)
+grid = [[0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
+        [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+        [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+        [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+        [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+        [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+        [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+        [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+        [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+        [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+        [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+        [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+        [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+        [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+        [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+        [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+        [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+        [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+        [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+        [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+        [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+        [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+        [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+        [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+        [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]]
 # Load background image
 background_image = pygame.image.load(os.path.join("assets", "map1.png")).convert()
-background_image = pygame.transform.scale(background_image, (SCREEN_WIDTH, SCREEN_HEIGHT))
+background_image = pygame.transform.scale(background_image, (GAME_AREA_SIZE, GAME_AREA_SIZE))
 
 class Character(pygame.sprite.Sprite):
     def __init__(self):
         super().__init__()
-        self.x = MAP_WIDTH // 2
-        self.y = MAP_HEIGHT // 2
+        self.grid_x = GRID_SIZE // 2
+        self.grid_y = GRID_SIZE // 2
+        self.pixel_x = self.grid_x * TILE_SIZE + GAME_AREA_LEFT
+        self.pixel_y = self.grid_y * TILE_SIZE + GAME_AREA_TOP
         self.direction = "down"
         self.frame = 0
         self.animation_speed = 0.2
@@ -34,15 +68,14 @@ class Character(pygame.sprite.Sprite):
         self.load_images()
         self.image = self.standing_image
         self.rect = self.image.get_rect()
-        self.rect.x = self.x * TILE_SIZE
-        self.rect.y = self.y * TILE_SIZE
+        self.rect.x = self.pixel_x
+        self.rect.y = self.pixel_y
+        self.target_x = self.pixel_x
+        self.target_y = self.pixel_y
 
     def load_images(self):
         self.images = {
-            "up": [],
-            "down": [],
-            "left": [],
-            "right": []
+            "up": [], "down": [], "left": [], "right": []
         }
         self.standing_image = pygame.image.load(os.path.join("character", "character_standing.png")).convert_alpha()
         
@@ -52,27 +85,43 @@ class Character(pygame.sprite.Sprite):
                 self.images[direction].append(img)
 
     def move(self, dx, dy):
-        if dx < 0:
-            self.direction = "left"
-        elif dx > 0:
-            self.direction = "right"
-        elif dy < 0:
-            self.direction = "down"
-        elif dy > 0:
-            self.direction = "up"
+        new_grid_x = self.grid_x + dx
+        new_grid_y = self.grid_y + dy
 
-        # Check if movement would cross the boundaries
-        if 0 <= self.rect.x + dx * MOVE_SPEED <= SCREEN_WIDTH - self.rect.width:
-            self.rect.x += dx * MOVE_SPEED
-        if 0 <= self.rect.y + dy * MOVE_SPEED <= SCREEN_HEIGHT - self.rect.height:
-            self.rect.y += dy * MOVE_SPEED
+        if 0 <= new_grid_x < GRID_SIZE and 0 <= new_grid_y < GRID_SIZE and grid[new_grid_y][new_grid_x] == 0:
+            self.grid_x = new_grid_x
+            self.grid_y = new_grid_y
+            self.target_x = self.grid_x * TILE_SIZE + GAME_AREA_LEFT
+            self.target_y = self.grid_y * TILE_SIZE + GAME_AREA_TOP
+            self.moving = True
 
-        # Set the character as moving if there's movement
-        self.moving = (dx != 0 or dy != 0)
+            if dx < 0:
+                self.direction = "left"
+            elif dx > 0:
+                self.direction = "right"
+            elif dy < 0:
+                self.direction = "down"
+            elif dy > 0:
+                self.direction = "up"
 
     def update(self):
-        # Update character animation when moving
         if self.moving:
+            if self.pixel_x < self.target_x:
+                self.pixel_x = min(self.pixel_x + MOVE_SPEED, self.target_x)
+            elif self.pixel_x > self.target_x:
+                self.pixel_x = max(self.pixel_x - MOVE_SPEED, self.target_x)
+            
+            if self.pixel_y < self.target_y:
+                self.pixel_y = min(self.pixel_y + MOVE_SPEED, self.target_y)
+            elif self.pixel_y > self.target_y:
+                self.pixel_y = max(self.pixel_y - MOVE_SPEED, self.target_y)
+
+            self.rect.x = self.pixel_x
+            self.rect.y = self.pixel_y
+
+            if (self.pixel_x, self.pixel_y) == (self.target_x, self.target_y):
+                self.moving = False
+
             self.frame += self.animation_speed
             if self.frame >= len(self.images[self.direction]):
                 self.frame = 0
@@ -95,29 +144,20 @@ while running:
         elif event.type == pygame.KEYDOWN:
             if event.key == pygame.K_ESCAPE:
                 running = False
-
-    # Handle continuous movement while the keys are held down
-    keys = pygame.key.get_pressed()
-    dx, dy = 0, 0
-    if keys[pygame.K_UP]:
-        dy = -1
-    elif keys[pygame.K_DOWN]:
-        dy = 1
-    if keys[pygame.K_LEFT]:
-        dx = -1
-    elif keys[pygame.K_RIGHT]:
-        dx = 1
-
-    # Call the original move function
-    character.move(dx, dy)
-
-    # If no movement keys are pressed, set moving to False
-    if dx == 0 and dy == 0:
-        character.moving = False
+            elif not character.moving:
+                if event.key == pygame.K_UP:
+                    character.move(0, -1)
+                elif event.key == pygame.K_DOWN:
+                    character.move(0, 1)
+                elif event.key == pygame.K_LEFT:
+                    character.move(-1, 0)
+                elif event.key == pygame.K_RIGHT:
+                    character.move(1, 0)
 
     all_sprites.update()
 
-    screen.blit(background_image, (0, 0))
+    screen.fill((0, 0, 0))  # Fill the screen with black
+    screen.blit(background_image, (GAME_AREA_LEFT, GAME_AREA_TOP))
     all_sprites.draw(screen)
     pygame.display.flip()
 
