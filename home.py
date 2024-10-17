@@ -7,60 +7,83 @@ pygame.init()
 # Constants
 GRID_SIZE = 25
 FPS = 60
-MOVE_SPEED = 2  # Pixels per frame when moving
+MOVE_SPEED = 5  # Pixels per frame when moving
 
 # Get the screen dimensions
 screen_info = pygame.display.Info()
 SCREEN_WIDTH = screen_info.current_w
 SCREEN_HEIGHT = screen_info.current_h
-GAME_AREA_SIZE = min(SCREEN_HEIGHT, SCREEN_WIDTH)  # Leave 200 pixels on the right
 
-# Calculate the game area size and position
-TILE_SIZE = GAME_AREA_SIZE // GRID_SIZE
-GAME_AREA_LEFT = 0
-GAME_AREA_TOP = (SCREEN_HEIGHT - GAME_AREA_SIZE) // 2
+# Variable to control the width of the game map (0.0 to 1.0)
+vary_width = 0.8  # Change this value to reduce the width of the game map
 
-# Create the screen
+# Calculate game area dimensions
+GAME_AREA_WIDTH = int(SCREEN_WIDTH * vary_width)
+GAME_AREA_HEIGHT = SCREEN_HEIGHT
+
+# Calculate the tile size based on the game area dimensions
+TILE_SIZE = GAME_AREA_WIDTH // GRID_SIZE
+
+# Joystick constants
+ARROW_SIZE = 64  # Size of arrow images
+JOYSTICK_MARGIN = 20  # Margin between arrows
+
+# Create the screen in fullscreen mode
 screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT), pygame.FULLSCREEN)
 pygame.display.set_caption("The Atlas Protocol")
 
-# Create the grid (all 0s)
-grid = [[0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
-        [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-        [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-        [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-        [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-        [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-        [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-        [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-        [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-        [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-        [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-        [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-        [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-        [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-        [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-        [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-        [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-        [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-        [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-        [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-        [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-        [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-        [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-        [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-        [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]]
+# Create the grid (25x25, all 0s)
+grid = [[0 for _ in range(GRID_SIZE)] for _ in range(GRID_SIZE)]
+
+# Add some obstacles (example)
+grid[5][5] = 1
+grid[5][6] = 1
+grid[6][5] = 1
+grid[6][6] = 1
+
 # Load background image
 background_image = pygame.image.load(os.path.join("assets", "map1.png")).convert()
-background_image = pygame.transform.scale(background_image, (GAME_AREA_SIZE, GAME_AREA_SIZE))
+background_image = pygame.transform.scale(background_image, (GAME_AREA_WIDTH, GAME_AREA_HEIGHT))
+
+# Load arrow images
+arrow_up = pygame.image.load(os.path.join("assets", "arrow_up.png")).convert_alpha()
+arrow_down = pygame.image.load(os.path.join("assets", "arrow_down.png")).convert_alpha()
+arrow_left = pygame.image.load(os.path.join("assets", "arrow_left.png")).convert_alpha()
+arrow_right = pygame.image.load(os.path.join("assets", "arrow_right.png")).convert_alpha()
+
+# Scale arrow images
+arrow_up = pygame.transform.scale(arrow_up, (ARROW_SIZE, ARROW_SIZE))
+arrow_down = pygame.transform.scale(arrow_down, (ARROW_SIZE, ARROW_SIZE))
+arrow_left = pygame.transform.scale(arrow_left, (ARROW_SIZE, ARROW_SIZE))
+arrow_right = pygame.transform.scale(arrow_right, (ARROW_SIZE, ARROW_SIZE))
+
+# Create joystick group
+joystick_group = pygame.Surface((ARROW_SIZE * 3 + JOYSTICK_MARGIN * 2, ARROW_SIZE * 3 + JOYSTICK_MARGIN * 2), pygame.SRCALPHA)
+
+# Position arrows within the joystick group
+arrow_up_rect = arrow_up.get_rect(midtop=(ARROW_SIZE * 1.5 + JOYSTICK_MARGIN, 0))
+arrow_down_rect = arrow_down.get_rect(midbottom=(ARROW_SIZE * 1.5 + JOYSTICK_MARGIN, ARROW_SIZE * 3 + JOYSTICK_MARGIN * 2))
+arrow_left_rect = arrow_left.get_rect(midleft=(0, ARROW_SIZE * 1.5 + JOYSTICK_MARGIN))
+arrow_right_rect = arrow_right.get_rect(midright=(ARROW_SIZE * 3 + JOYSTICK_MARGIN * 2, ARROW_SIZE * 1.5 + JOYSTICK_MARGIN))
+
+# Draw arrows on the joystick group
+joystick_group.blit(arrow_up, arrow_up_rect)
+joystick_group.blit(arrow_down, arrow_down_rect)
+joystick_group.blit(arrow_left, arrow_left_rect)
+joystick_group.blit(arrow_right, arrow_right_rect)
+
+# Position the joystick group on the screen
+joystick_x = GAME_AREA_WIDTH + (SCREEN_WIDTH - GAME_AREA_WIDTH - joystick_group.get_width()) // 2
+joystick_y = (SCREEN_HEIGHT - joystick_group.get_height()) // 2
+joystick_rect = joystick_group.get_rect(topleft=(joystick_x, joystick_y))
 
 class Character(pygame.sprite.Sprite):
     def __init__(self):
         super().__init__()
-        self.grid_x = GRID_SIZE // 2
-        self.grid_y = GRID_SIZE // 2
-        self.pixel_x = self.grid_x * TILE_SIZE + GAME_AREA_LEFT
-        self.pixel_y = self.grid_y * TILE_SIZE + GAME_AREA_TOP
+        self.grid_x = 0
+        self.grid_y = 0
+        self.pixel_x = self.grid_x * TILE_SIZE
+        self.pixel_y = self.grid_y * TILE_SIZE
         self.direction = "down"
         self.frame = 0
         self.animation_speed = 0.2
@@ -78,10 +101,11 @@ class Character(pygame.sprite.Sprite):
             "up": [], "down": [], "left": [], "right": []
         }
         self.standing_image = pygame.image.load(os.path.join("character", "character_standing.png")).convert_alpha()
-        
+        self.st        
         for direction in self.images.keys():
             for i in range(9):
                 img = pygame.image.load(os.path.join("character", f"character_{direction}_{i}.png")).convert_alpha()
+                img = pygame.transform.scale(img, (TILE_SIZE, TILE_SIZE))
                 self.images[direction].append(img)
 
     def move(self, dx, dy):
@@ -91,8 +115,8 @@ class Character(pygame.sprite.Sprite):
         if 0 <= new_grid_x < GRID_SIZE and 0 <= new_grid_y < GRID_SIZE and grid[new_grid_y][new_grid_x] == 0:
             self.grid_x = new_grid_x
             self.grid_y = new_grid_y
-            self.target_x = self.grid_x * TILE_SIZE + GAME_AREA_LEFT
-            self.target_y = self.grid_y * TILE_SIZE + GAME_AREA_TOP
+            self.target_x = self.grid_x * TILE_SIZE
+            self.target_y = self.grid_y * TILE_SIZE
             self.moving = True
 
             if dx < 0:
@@ -100,9 +124,9 @@ class Character(pygame.sprite.Sprite):
             elif dx > 0:
                 self.direction = "right"
             elif dy < 0:
-                self.direction = "down"
-            elif dy > 0:
                 self.direction = "up"
+            elif dy > 0:
+                self.direction = "down"
 
     def update(self):
         if self.moving:
@@ -153,14 +177,31 @@ while running:
                     character.move(-1, 0)
                 elif event.key == pygame.K_RIGHT:
                     character.move(1, 0)
+        elif event.type == pygame.MOUSEBUTTONDOWN:
+            if event.button == 1:  # Left mouse button
+                mouse_pos = pygame.mouse.get_pos()
+                if joystick_rect.collidepoint(mouse_pos):
+                    if arrow_up_rect.collidepoint(relative_pos) and not character.moving:
+                        character.move(0, -1)
+                    elif arrow_down_rect.collidepoint(relative_pos) and not character.moving:
+                        character.move(0, 1)
+                    elif arrow_left_rect.collidepoint(relative_pos) and not character.moving:
+                        character.move(-1, 0)
+                    elif arrow_right_rect.collidepoint(relative_pos) and not character.moving:
+                        character.move(1, 0)
 
     all_sprites.update()
 
-    screen.fill((0, 0, 0))  # Fill the screen with black
-    screen.blit(background_image, (GAME_AREA_LEFT, GAME_AREA_TOP))
+    screen.fill((255, 255, 255))  # Fill the screen with white
+    screen.blit(background_image, (0, 0))
     all_sprites.draw(screen)
+
+    # Draw joystick group
+    screen.blit(joystick_group, joystick_rect)
+
     pygame.display.flip()
 
     clock.tick(FPS)
+
 
 pygame.quit()
