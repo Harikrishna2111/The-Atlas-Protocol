@@ -1,5 +1,9 @@
 import pygame
 import os
+import sys
+
+# Set the working directory to the script's location
+os.chdir(os.path.dirname(os.path.abspath(__file__)))
 
 # Initialize Pygame
 pygame.init()
@@ -27,6 +31,7 @@ TILE_SIZE = GAME_AREA_WIDTH // GRID_SIZE
 # Joystick constants
 ARROW_SIZE = 64  # Size of arrow images
 JOYSTICK_MARGIN = 20  # Margin between arrows
+JOYSTICK_OFFSET = 200  # Distance from bottom of screen to bottom of joystick
 
 # Create the screen in fullscreen mode
 screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT), pygame.FULLSCREEN)
@@ -46,10 +51,10 @@ background_image = pygame.image.load(os.path.join("assets", "map1.png")).convert
 background_image = pygame.transform.scale(background_image, (GAME_AREA_WIDTH, GAME_AREA_HEIGHT))
 
 # Load arrow images
-arrow_up = pygame.image.load(os.path.join("assets", "arrow_up.png")).convert_alpha()
-arrow_down = pygame.image.load(os.path.join("assets", "arrow_down.png")).convert_alpha()
-arrow_left = pygame.image.load(os.path.join("assets", "arrow_left.png")).convert_alpha()
-arrow_right = pygame.image.load(os.path.join("assets", "arrow_right.png")).convert_alpha()
+arrow_up = pygame.image.load(os.path.join("arrows", "arrow_up.png")).convert_alpha()
+arrow_down = pygame.image.load(os.path.join("arrows", "arrow_down.png")).convert_alpha()
+arrow_left = pygame.image.load(os.path.join("arrows", "arrow_left.png")).convert_alpha()
+arrow_right = pygame.image.load(os.path.join("arrows", "arrow_right.png")).convert_alpha()
 
 # Scale arrow images
 arrow_up = pygame.transform.scale(arrow_up, (ARROW_SIZE, ARROW_SIZE))
@@ -74,7 +79,7 @@ joystick_group.blit(arrow_right, arrow_right_rect)
 
 # Position the joystick group on the screen
 joystick_x = GAME_AREA_WIDTH + (SCREEN_WIDTH - GAME_AREA_WIDTH - joystick_group.get_width()) // 2
-joystick_y = (SCREEN_HEIGHT - joystick_group.get_height()) // 2
+joystick_y = SCREEN_HEIGHT - joystick_group.get_height() - JOYSTICK_OFFSET  # Adjusted to move down
 joystick_rect = joystick_group.get_rect(topleft=(joystick_x, joystick_y))
 
 class Character(pygame.sprite.Sprite):
@@ -101,7 +106,8 @@ class Character(pygame.sprite.Sprite):
             "up": [], "down": [], "left": [], "right": []
         }
         self.standing_image = pygame.image.load(os.path.join("character", "character_standing.png")).convert_alpha()
-        self.st        
+        self.standing_image = pygame.transform.scale(self.standing_image, (TILE_SIZE, TILE_SIZE))
+        
         for direction in self.images.keys():
             for i in range(9):
                 img = pygame.image.load(os.path.join("character", f"character_{direction}_{i}.png")).convert_alpha()
@@ -160,7 +166,6 @@ all_sprites = pygame.sprite.Group(character)
 # Game loop
 clock = pygame.time.Clock()
 running = True
-
 while running:
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
@@ -168,19 +173,16 @@ while running:
         elif event.type == pygame.KEYDOWN:
             if event.key == pygame.K_ESCAPE:
                 running = False
-            elif not character.moving:
-                if event.key == pygame.K_UP:
-                    character.move(0, -1)
-                elif event.key == pygame.K_DOWN:
-                    character.move(0, 1)
-                elif event.key == pygame.K_LEFT:
-                    character.move(-1, 0)
-                elif event.key == pygame.K_RIGHT:
-                    character.move(1, 0)
         elif event.type == pygame.MOUSEBUTTONDOWN:
             if event.button == 1:  # Left mouse button
                 mouse_pos = pygame.mouse.get_pos()
+
+                # Check if the mouse is inside the joystick group area
                 if joystick_rect.collidepoint(mouse_pos):
+                    # Calculate the relative position of the mouse within the joystick group
+                    relative_pos = (mouse_pos[0] - joystick_rect.x, mouse_pos[1] - joystick_rect.y)
+                    
+                    # Check which arrow button was clicked
                     if arrow_up_rect.collidepoint(relative_pos) and not character.moving:
                         character.move(0, -1)
                     elif arrow_down_rect.collidepoint(relative_pos) and not character.moving:
@@ -190,18 +192,17 @@ while running:
                     elif arrow_right_rect.collidepoint(relative_pos) and not character.moving:
                         character.move(1, 0)
 
+    # Update all sprites
     all_sprites.update()
 
-    screen.fill((255, 255, 255))  # Fill the screen with white
-    screen.blit(background_image, (0, 0))
-    all_sprites.draw(screen)
-
-    # Draw joystick group
-    screen.blit(joystick_group, joystick_rect)
+    # Draw everything
+    screen.fill((0, 0, 0))  # Clear screen with black
+    screen.blit(background_image, (0, 0))  # Draw the background
+    all_sprites.draw(screen)  # Draw character
+    screen.blit(joystick_group, joystick_rect.topleft)  # Draw joystick
 
     pygame.display.flip()
-
     clock.tick(FPS)
 
-
 pygame.quit()
+sys.exit()
