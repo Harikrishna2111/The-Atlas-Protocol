@@ -11,7 +11,6 @@ pygame.init()
 # Constants
 GRID_SIZE = 25
 FPS = 60
-MOVE_SPEED = 5  # Pixels per frame when moving
 
 # Get the screen dimensions
 screen_info = pygame.display.Info()
@@ -28,6 +27,13 @@ GAME_AREA_HEIGHT = SCREEN_HEIGHT
 # Calculate the tile size based on the game area dimensions
 TILE_SIZE = GAME_AREA_WIDTH // GRID_SIZE
 
+# New: Add character scale factor
+CHARACTER_SCALE = 0.6  # Adjust this value to make the character smaller or larger
+TILE_SIZE = int(TILE_SIZE * CHARACTER_SCALE)
+
+# New: Adjust MOVE_SPEED based on CHARACTER_SCALE
+MOVE_SPEED = int(5 * CHARACTER_SCALE)  # Pixels per frame when moving
+
 # Joystick constants
 ARROW_SIZE = 64  # Size of arrow images
 JOYSTICK_MARGIN = 20  # Margin between arrows
@@ -39,12 +45,6 @@ pygame.display.set_caption("The Atlas Protocol")
 
 # Create the grid (25x25, all 0s)
 grid = [[0 for _ in range(GRID_SIZE)] for _ in range(GRID_SIZE)]
-
-# Add some obstacles (example)
-grid[5][5] = 1
-grid[5][6] = 1
-grid[6][5] = 1
-grid[6][6] = 1
 
 # Load background image
 background_image = pygame.image.load(os.path.join("assets", "map1.png")).convert()
@@ -81,6 +81,13 @@ joystick_group.blit(arrow_right, arrow_right_rect)
 joystick_x = GAME_AREA_WIDTH + (SCREEN_WIDTH - GAME_AREA_WIDTH - joystick_group.get_width()) // 2
 joystick_y = SCREEN_HEIGHT - joystick_group.get_height() - JOYSTICK_OFFSET  # Adjusted to move down
 joystick_rect = joystick_group.get_rect(topleft=(joystick_x, joystick_y))
+
+# Load the sample image (uploaded image)
+sample_image = pygame.image.load("assets/map1.png").convert()
+sample_image = pygame.transform.scale(sample_image, (joystick_group.get_width(), joystick_group.get_height()))  # Scale it to fit the top half
+
+# Define the area for the sample image (top half of the right column)
+sample_image_rect = sample_image.get_rect(topleft=(joystick_x, joystick_y - joystick_group.get_height() - JOYSTICK_MARGIN))
 
 class Character(pygame.sprite.Sprite):
     def __init__(self):
@@ -181,7 +188,7 @@ while running:
                 if joystick_rect.collidepoint(mouse_pos):
                     # Calculate the relative position of the mouse within the joystick group
                     relative_pos = (mouse_pos[0] - joystick_rect.x, mouse_pos[1] - joystick_rect.y)
-                    
+
                     # Check which arrow button was clicked
                     if arrow_up_rect.collidepoint(relative_pos) and not character.moving:
                         character.move(0, -1)
@@ -199,10 +206,12 @@ while running:
     screen.fill((0, 0, 0))  # Clear screen with black
     screen.blit(background_image, (0, 0))  # Draw the background
     all_sprites.draw(screen)  # Draw character
-    screen.blit(joystick_group, joystick_rect.topleft)  # Draw joystick
+    screen.blit(sample_image, sample_image_rect.topleft)  # Draw the sample image in the top half
+    screen.blit(joystick_group, joystick_rect.topleft)  # Draw joystick in the bottom half
 
     pygame.display.flip()
     clock.tick(FPS)
 
+# Quit Pygame
 pygame.quit()
 sys.exit()
