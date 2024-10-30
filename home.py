@@ -1,6 +1,7 @@
 import pygame
 import os
 import sys
+from Atlas_Dialogbox import render_ai_dialog, initialize_dialog_assets, toggle_dialog
 
 # Set the working directory to the script's location
 os.chdir(os.path.dirname(os.path.abspath(__file__)))
@@ -32,6 +33,8 @@ CHARACTER_SIZE = int(TILE_SIZE * CHARACTER_SCALE)  # Scale character separately
 # Move speed adjustment based on CHARACTER_SCALE
 MOVE_SPEED = int(5 * CHARACTER_SCALE)  # Pixels per frame when moving
 
+
+
 # Joystick constants
 ARROW_SIZE = 64  # Size of arrow images
 JOYSTICK_MARGIN = 20  # Margin between arrows
@@ -40,6 +43,9 @@ JOYSTICK_OFFSET = 200  # Distance from bottom of screen to bottom of joystick
 # Create the screen in fullscreen mode
 screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT), pygame.FULLSCREEN)
 pygame.display.set_caption("The Atlas Protocol")
+
+# Initialize dialog assets
+initialize_dialog_assets()
 
 # Create the grid (25x25, all 0s)
 grid = [[1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],
@@ -108,15 +114,21 @@ joystick_rect = joystick_group.get_rect(topleft=(joystick_x, joystick_y))
 sample_image = pygame.image.load("assets/map1.png").convert()
 sample_image = pygame.transform.scale(sample_image, (joystick_group.get_width(), joystick_group.get_height()))  # Scale it to fit the top half
 
+# Initial character position (in grid coordinates)
+CHAR_START_X = 19
+CHAR_START_Y = 13  
+
+current_ai_text = "Hello! Atlas here... Who am i speaking to?" 
+
+
 # Define the area for the sample image (top half of the right column)
 sample_image_rect = sample_image.get_rect(topleft=(joystick_x, joystick_y - joystick_group.get_height() - JOYSTICK_MARGIN))
 
 class Character(pygame.sprite.Sprite):
     def __init__(self):
         super().__init__()
-        # Set initial position to the center of the grid
-        self.grid_x = GRID_SIZE // 2
-        self.grid_y = GRID_SIZE // 2
+        self.grid_x = CHAR_START_X
+        self.grid_y = CHAR_START_Y
         self.pixel_x = self.grid_x * TILE_SIZE
         self.pixel_y = self.grid_y * TILE_SIZE
         self.direction = "down"
@@ -207,6 +219,11 @@ while running:
         elif event.type == pygame.KEYDOWN:
             if event.key == pygame.K_ESCAPE:
                 running = False
+            elif event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_SPACE:
+                    # Toggle dialog visibility
+                    toggle_dialog()
+
         elif event.type == pygame.MOUSEBUTTONDOWN:
             if event.button == 1:  # Left mouse button
                 mouse_pos = pygame.mouse.get_pos()
@@ -226,6 +243,9 @@ while running:
                     elif arrow_right_rect.collidepoint(relative_pos):
                         character.move(1, 0)   # Move right
 
+
+
+
     # Clear screen
     screen.fill((0, 0, 0))
 
@@ -241,6 +261,7 @@ while running:
     # Update character position and animations
     all_sprites.update()
     all_sprites.draw(screen)
+    render_ai_dialog(screen, current_ai_text)
 
     # Update display
     pygame.display.flip()
