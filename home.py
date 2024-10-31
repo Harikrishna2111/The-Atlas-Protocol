@@ -27,7 +27,7 @@ GAME_AREA_HEIGHT = SCREEN_HEIGHT
 
 # Calculate the tile size based on the game area dimensions
 TILE_SIZE = GAME_AREA_WIDTH // GRID_SIZE  # Calculate without scaling
-CHARACTER_SCALE = 0.6  # Adjust this value to make the character smaller or larger
+CHARACTER_SCALE = 0.9  # Adjust this value to make the character smaller or larger
 CHARACTER_SIZE = int(TILE_SIZE * CHARACTER_SCALE)  # Scale character separately
 
 # Move speed adjustment based on CHARACTER_SCALE
@@ -111,8 +111,20 @@ joystick_y = SCREEN_HEIGHT - joystick_group.get_height() - JOYSTICK_OFFSET  # Ad
 joystick_rect = joystick_group.get_rect(topleft=(joystick_x, joystick_y))
 
 # Load the sample image (uploaded image)
-sample_image = pygame.image.load("assets/map1.png").convert()
-sample_image = pygame.transform.scale(sample_image, (joystick_group.get_width(), joystick_group.get_height()))  # Scale it to fit the top half
+sample_image = pygame.image.load("assets/components/frame.png").convert_alpha()
+sample_image = pygame.transform.scale(sample_image, (300, 300))  # Scale it to fit the top half
+# Add this near your other image loading code
+overlay_image = pygame.image.load("assets/components/data_storage.png").convert_alpha()  # Replace with your image path
+overlay_image = pygame.transform.scale(overlay_image, (150, 150))  # Same size as sample_image
+
+# Define overlay position coordinates directly
+overlay_x =  1360
+overlay_y =  75
+overlay_rect = overlay_image.get_rect(topleft=(overlay_x, overlay_y))
+
+
+# Add a boolean control variable
+show_overlay = True  # You can toggle this to True when needed
 
 # Initial character position (in grid coordinates)
 CHAR_START_X = 19
@@ -120,9 +132,9 @@ CHAR_START_Y = 13
 
 current_ai_text = "Hello! Atlas here... Who am i speaking to?" 
 
-
 # Define the area for the sample image (top half of the right column)
-sample_image_rect = sample_image.get_rect(topleft=(joystick_x, joystick_y - joystick_group.get_height() - JOYSTICK_MARGIN))
+SAMPLE_IMAGE_OFFSET = 210  # Adjust this value to move the image higher or lower
+sample_image_rect = sample_image.get_rect(topleft=(joystick_x-35, joystick_y - joystick_group.get_height() - JOYSTICK_MARGIN - SAMPLE_IMAGE_OFFSET))
 
 class Character(pygame.sprite.Sprite):
     def __init__(self):
@@ -247,7 +259,7 @@ while running:
 
 
     # Clear screen
-    screen.fill((0, 0, 0))
+    screen.fill((0,0,0 ))
 
     # Draw background image in game area
     screen.blit(background_image, (0, 0))
@@ -257,6 +269,9 @@ while running:
 
     # Draw sample image in top half
     screen.blit(sample_image, sample_image_rect)
+    
+    if show_overlay:
+        screen.blit(overlay_image, overlay_rect)  # Using separate overlay_rect
 
     # Update character position and animations
     all_sprites.update()
