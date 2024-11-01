@@ -1,13 +1,15 @@
 import pygame
 import os
 import sys
-from Atlas_Dialogbox import render_ai_dialog, initialize_dialog_assets, toggle_dialog
+from Atlas_Dialogbox import render_ai_dialog, initialize_dialog_assets, close_dialog, dialog_visible, open_dialog
+from temp_langchain import ai, component_selector
 
 # Set the working directory to the script's location
 os.chdir(os.path.dirname(os.path.abspath(__file__)))
 
 # Initialize Pygame
 pygame.init()
+
 
 # Constants
 GRID_SIZE = 25  # This will remain 25x25 for grid logic
@@ -33,7 +35,7 @@ CHARACTER_SIZE = int(TILE_SIZE * CHARACTER_SCALE)  # Scale character separately
 # Move speed adjustment based on CHARACTER_SCALE
 MOVE_SPEED = int(5 * CHARACTER_SCALE)  # Pixels per frame when moving
 
-
+state = 0
 
 # Joystick constants
 ARROW_SIZE = 64  # Size of arrow images
@@ -43,7 +45,7 @@ JOYSTICK_OFFSET = 200  # Distance from bottom of screen to bottom of joystick
 # Create the screen in fullscreen mode
 screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT), pygame.FULLSCREEN)
 pygame.display.set_caption("The Atlas Protocol")
-
+ 
 # Initialize dialog assets
 initialize_dialog_assets()
 
@@ -73,7 +75,15 @@ grid = [[1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],
      [1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
      [1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
      [1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]]
-
+component_map = {
+        0: "No Components Found",
+        1: "You found a Camera",
+        2: "You found a GPS",
+        3: "You found a Processor",
+        4: "You found a Data Storage Component",
+        5: "You found a NLP Module",
+        6: "You found a Communicaton Component"    
+        }
 # Load background image
 background_image = pygame.image.load(os.path.join("assets", "map1.png")).convert()
 background_image = pygame.transform.scale(background_image, (GAME_AREA_WIDTH, GAME_AREA_HEIGHT))
@@ -114,7 +124,7 @@ joystick_rect = joystick_group.get_rect(topleft=(joystick_x, joystick_y))
 sample_image = pygame.image.load("assets/components/frame.png").convert_alpha()
 sample_image = pygame.transform.scale(sample_image, (300, 300))  # Scale it to fit the top half
 # Add this near your other image loading code
-overlay_image = pygame.image.load("assets/components/data_storage.png").convert_alpha()  # Replace with your image path
+overlay_image = pygame.image.load("assets/components/" + str(state) + ".png").convert_alpha()  # Replace with your image path
 overlay_image = pygame.transform.scale(overlay_image, (150, 150))  # Same size as sample_image
 
 # Define overlay position coordinates directly
@@ -122,6 +132,14 @@ overlay_x =  1360
 overlay_y =  75
 overlay_rect = overlay_image.get_rect(topleft=(overlay_x, overlay_y))
 
+FONT_SIZE = 24
+TEXT_COLOR = (255, 255, 255)  # White text
+TEXT_POSITION = (GAME_AREA_WIDTH + 50, 350)  # Position in right panel
+font = pygame.font.Font("C:\Windows\Fonts\Arial.ttf" , FONT_SIZE)
+# Function to render text
+def draw_text(screen, text, position):
+    text_surface = font.render(text, True, TEXT_COLOR)
+    screen.blit(text_surface, position)
 
 # Add a boolean control variable
 show_overlay = True  # You can toggle this to True when needed
@@ -191,6 +209,9 @@ class Character(pygame.sprite.Sprite):
                 self.direction = "down"
             elif dy > 0:
                 self.direction = "up"
+            
+            state = component_selector() 
+
 
     def update(self):
         if self.moving:
@@ -225,16 +246,36 @@ all_sprites = pygame.sprite.Group(character)
 clock = pygame.time.Clock()
 running = True
 while running:
+    # Check state and display dialog
+    if state != 0:
+        # Get the appropriate message from component_map
+        message = component_map.get(state, "No Components Found")
+        # Open the dialog with the message
+        open_dialog()
+        render_ai_dialog(screen, message)
+    else:
+        close_dialog()
+        
+    overlay_image = pygame.image.load("assets/components/" + str(state) + ".png").convert_alpha()  # Replace with your image path
+    overlay_image = pygame.transform.scale(overlay_image, (150, 150)) 
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             running = False
         elif event.type == pygame.KEYDOWN:
             if event.key == pygame.K_ESCAPE:
                 running = False
-            elif event.type == pygame.KEYDOWN:
-                if event.key == pygame.K_SPACE:
-                    # Toggle dialog visibility
-                    toggle_dialog()
+            elif event.key == pygame.K_UP:
+                character.move(0, -1)
+                state = component_selector()
+            elif event.key == pygame.K_DOWN:
+                character.move(0, 1)
+                state = component_selector()
+            elif event.key == pygame.K_LEFT:
+                character.move(-1, 0)
+                state = component_selector()
+            elif event.key == pygame.K_RIGHT:
+                character.move(1, 0)
+                state = component_selector()
 
         elif event.type == pygame.MOUSEBUTTONDOWN:
             if event.button == 1:  # Left mouse button
@@ -244,16 +285,20 @@ while running:
                 if joystick_rect.collidepoint(mouse_pos):
                     # Calculate the relative position of the mouse within the joystick group
                     relative_pos = (mouse_pos[0] - joystick_rect.x, mouse_pos[1] - joystick_rect.y)
-
+                    
                     # Determine the direction based on relative position
                     if arrow_up_rect.collidepoint(relative_pos):
                         character.move(0, -1)  # Move up
+                        state = component_selector()
                     elif arrow_down_rect.collidepoint(relative_pos):
                         character.move(0, 1)   # Move down
+                        state = component_selector()
                     elif arrow_left_rect.collidepoint(relative_pos):
                         character.move(-1, 0)  # Move left
+                        state = component_selector()
                     elif arrow_right_rect.collidepoint(relative_pos):
                         character.move(1, 0)   # Move right
+                        state = component_selector()
 
 
 
@@ -276,7 +321,11 @@ while running:
     # Update character position and animations
     all_sprites.update()
     all_sprites.draw(screen)
-    render_ai_dialog(screen, current_ai_text)
+    
+    
+    
+    
+    draw_text(screen, component_map[state], TEXT_POSITION)
 
     # Update display
     pygame.display.flip()
