@@ -10,6 +10,7 @@ os.chdir(os.path.dirname(os.path.abspath(__file__)))
 # Initialize Pygame
 pygame.init()
 
+initialize_dialog_assets()
 
 # Constants
 GRID_SIZE = 25  # This will remain 25x25 for grid logic
@@ -39,8 +40,8 @@ state = 0
 
 # Joystick constants
 ARROW_SIZE = 64  # Size of arrow images
-JOYSTICK_MARGIN = 20  # Margin between arrows
-JOYSTICK_OFFSET = 200  # Distance from bottom of screen to bottom of joystick
+JOYSTICK_MARGIN = 0 # Margin between arrows
+JOYSTICK_OFFSET = 250  # Distance from bottom of screen to bottom of joystick
 
 # Create the screen in fullscreen mode
 screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT), pygame.FULLSCREEN)
@@ -127,14 +128,21 @@ sample_image = pygame.transform.scale(sample_image, (300, 300))  # Scale it to f
 overlay_image = pygame.image.load("assets/components/" + str(state) + ".png").convert_alpha()  # Replace with your image path
 overlay_image = pygame.transform.scale(overlay_image, (150, 150))  # Same size as sample_image
 
+# Load the collect image
+collect_image = pygame.image.load("assets/collect.png").convert_alpha()
+collect_image = pygame.transform.scale(collect_image, (150, 50))  # Adjust size as needed
+COLLECT_IMAGE_X = GAME_AREA_WIDTH + 150  # Horizontal center of game area
+COLLECT_IMAGE_Y = GAME_AREA_HEIGHT - 500 # 150 pixels from bottom of game area
+
+
 # Define overlay position coordinates directly
-overlay_x =  1360
-overlay_y =  75
+overlay_x =  1380
+overlay_y =  90
 overlay_rect = overlay_image.get_rect(topleft=(overlay_x, overlay_y))
 
 FONT_SIZE = 24
 TEXT_COLOR = (255, 255, 255)  # White text
-TEXT_POSITION = (GAME_AREA_WIDTH + 50, 350)  # Position in right panel
+TEXT_POSITION = (GAME_AREA_WIDTH + 50, 325)  # Position in right panel
 font = pygame.font.Font("C:\Windows\Fonts\Arial.ttf" , FONT_SIZE)
 # Function to render text
 def draw_text(screen, text, position):
@@ -152,7 +160,7 @@ current_ai_text = "Hello! Atlas here... Who am i speaking to?"
 
 # Define the area for the sample image (top half of the right column)
 SAMPLE_IMAGE_OFFSET = 210  # Adjust this value to move the image higher or lower
-sample_image_rect = sample_image.get_rect(topleft=(joystick_x-35, joystick_y - joystick_group.get_height() - JOYSTICK_MARGIN - SAMPLE_IMAGE_OFFSET))
+sample_image_rect = sample_image.get_rect(topleft=(joystick_x-35, joystick_y - joystick_group.get_height() - JOYSTICK_MARGIN - SAMPLE_IMAGE_OFFSET - 50))
 
 class Character(pygame.sprite.Sprite):
     def __init__(self):
@@ -308,6 +316,17 @@ while running:
 
     # Draw background image in game area
     screen.blit(background_image, (0, 0))
+    # Display collect image when state is not 0
+    if state != 0:
+        collect_image_rect = collect_image.get_rect()
+        collect_image_rect.center = (COLLECT_IMAGE_X, COLLECT_IMAGE_Y)
+        screen.blit(collect_image, collect_image_rect)
+
+    if state != 0:
+        open_dialog()  # Make sure the dialog is open
+        render_ai_dialog(screen, current_ai_text)
+    else:
+        close_dialog()  # Close the dialog when state is 0
 
     # Draw joystick group
     screen.blit(joystick_group, joystick_rect)
