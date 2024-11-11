@@ -1,8 +1,8 @@
 import pygame
 import os
 import sys
-from Atlas_Dialogbox import render_ai_dialog, initialize_dialog_assets, close_dialog, dialog_visible, open_dialog
-from temp_langchain import ai, component_selector
+from Atlas_Dialogbox import render_ai_dialog, initialize_dialog_assets, close_dialog, open_dialog
+from database import component_selector, component_count_holder, component_weights
 from text2speech import speak_text
 
 # Set the working directory to the script's location
@@ -21,14 +21,6 @@ FPS = 60
 screen_info = pygame.display.Info()
 SCREEN_WIDTH = screen_info.current_w
 SCREEN_HEIGHT = screen_info.current_h
-
-# Variables to store the count of specific components collected
-camera_count = 0
-gps_count = 0
-processor_count = 0
-data_count = 0
-nlp_count = 0
-commuication_count = 0
 
 # Variable to control the width of the game map (0.0 to 1.0)
 vary_width = 0.8  # Change this value to reduce the width of the game map
@@ -308,6 +300,9 @@ while running:
                 if collect_rect.collidepoint(mouse_pos):
                     show_collect_image = False
                     collected = True
+                    component_count_holder[state - 1] += 1
+                    if component_count_holder[state - 1] >= 5:
+                        component_weights[state] = 0
                 # Check if the mouse is inside the joystick group area
                 if joystick_rect.collidepoint(mouse_pos):
                     # Calculate the relative position of the mouse within the joystick group
