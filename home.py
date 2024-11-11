@@ -156,11 +156,12 @@ show_overlay = True  # You can toggle this to True when needed
 CHAR_START_X = 19
 CHAR_START_Y = 13  
 
-current_ai_text = "Mic testing" 
 
 show_collect_image = True
 spoke = False
 collected = False
+current_ai_text = component_map[state] 
+
 
 # Define the area for the sample image (top half of the right column)
 SAMPLE_IMAGE_OFFSET = 210  # Adjust this value to move the image higher or lower
@@ -332,7 +333,6 @@ while running:
 
 
 
-
     # Clear screen
     screen.fill((0,0,0))
 
@@ -348,6 +348,8 @@ while running:
         open_dialog()  # Make sure the dialog is open
         render_ai_dialog(screen, current_ai_text)
         if not spoke:  # Check if we haven't spoken yet
+            current_ai_text = component_map[state] 
+
             speak_text(current_ai_text)
             spoke = True  # Set the flag after speaking
     else:
