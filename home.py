@@ -3,6 +3,7 @@ import os
 import sys
 from Atlas_Dialogbox import render_ai_dialog, initialize_dialog_assets, close_dialog, dialog_visible, open_dialog
 from temp_langchain import ai, component_selector
+from text2speech import speak_text
 
 # Set the working directory to the script's location
 os.chdir(os.path.dirname(os.path.abspath(__file__)))
@@ -139,8 +140,8 @@ overlay_image = pygame.transform.scale(overlay_image, (150, 150))  # Same size a
 # Load the collect image
 collect_image = pygame.image.load("assets/collect.png").convert_alpha()
 collect_image = pygame.transform.scale(collect_image, (150, 50))  # Adjust size as needed
-COLLECT_IMAGE_X = GAME_AREA_WIDTH + 150  # Horizontal center of game area
-COLLECT_IMAGE_Y = GAME_AREA_HEIGHT - 500 # 150 pixels from bottom of game area
+COLLECT_IMAGE_X = GAME_AREA_WIDTH + 100  # Horizontal center of game area
+COLLECT_IMAGE_Y = GAME_AREA_HEIGHT - 525 # 150 pixels from bottom of game area
 
 # Define overlay position coordinates directly
 overlay_x =  1380
@@ -163,9 +164,11 @@ show_overlay = True  # You can toggle this to True when needed
 CHAR_START_X = 19
 CHAR_START_Y = 13  
 
-current_ai_text = "Hello! Atlas here... Who am i speaking to?" 
+current_ai_text = "Mic testing" 
 
 show_collect_image = True
+spoke = False
+collected = False
 
 # Define the area for the sample image (top half of the right column)
 SAMPLE_IMAGE_OFFSET = 210  # Adjust this value to move the image higher or lower
@@ -258,7 +261,6 @@ class Character(pygame.sprite.Sprite):
 # Create character
 character = Character()
 all_sprites = pygame.sprite.Group(character)
-
 # Game loop
 clock = pygame.time.Clock()
 running = True
@@ -270,6 +272,7 @@ while running:
         # Open the dialog with the message
         open_dialog()
         render_ai_dialog(screen, message)
+        
     else:
         close_dialog()
         
@@ -284,15 +287,19 @@ while running:
             elif event.key == pygame.K_UP:
                 character.move(0, -1)
                 state = component_selector()
+                collected = False
             elif event.key == pygame.K_DOWN:
                 character.move(0, 1)
                 state = component_selector()
+                collected = False
             elif event.key == pygame.K_LEFT:
                 character.move(-1, 0)
                 state = component_selector()
+                collected = False
             elif event.key == pygame.K_RIGHT:
                 character.move(1, 0)
                 state = component_selector()
+                collected = False
 
         elif event.type == pygame.MOUSEBUTTONDOWN:
             if event.button == 1:  # Left mouse button
@@ -300,32 +307,33 @@ while running:
                 collect_rect = collect_image.get_rect(topleft=(COLLECT_IMAGE_X, COLLECT_IMAGE_Y))
                 if collect_rect.collidepoint(mouse_pos):
                     show_collect_image = False
+                    collected = True
                 # Check if the mouse is inside the joystick group area
                 if joystick_rect.collidepoint(mouse_pos):
                     # Calculate the relative position of the mouse within the joystick group
                     relative_pos = (mouse_pos[0] - joystick_rect.x, mouse_pos[1] - joystick_rect.y)
-                    
                     # Determine the direction based on relative position
                     if arrow_up_rect.collidepoint(relative_pos):
                         character.move(0, -1)  # Move up
                         state = component_selector()
-                        if state != 0:
-                            show_collect_image = True
+                        spoke = False  # Reset spoke flag when moving
+                        collected = False
                     elif arrow_down_rect.collidepoint(relative_pos):
                         character.move(0, 1)   # Move down
                         state = component_selector()
-                        if state != 0:
-                            show_collect_image = True
+                        spoke = False  # Reset spoke flag when moving
+                        collected = False
                     elif arrow_left_rect.collidepoint(relative_pos):
                         character.move(-1, 0)  # Move left
                         state = component_selector()
-                        if state != 0:
-                            show_collect_image = True
+                        spoke = False  # Reset spoke flag when moving
+                        collected = False
                     elif arrow_right_rect.collidepoint(relative_pos):
                         character.move(1, 0)   # Move right
                         state = component_selector()
-                        if state != 0:
-                            show_collect_image = True
+                        spoke = False  # Reset spoke flag when moving
+                        collected = False
+
 
 
 
@@ -339,14 +347,17 @@ while running:
     if state != 0:
         collect_image_rect = collect_image.get_rect()
         collect_image_rect.center = (COLLECT_IMAGE_X, COLLECT_IMAGE_Y)
-        if show_collect_image:
+        if not collected:
             screen.blit(collect_image, (COLLECT_IMAGE_X, COLLECT_IMAGE_Y))
-
     if state != 0:
         open_dialog()  # Make sure the dialog is open
         render_ai_dialog(screen, current_ai_text)
+        if not spoke:  # Check if we haven't spoken yet
+            speak_text(current_ai_text)
+            spoke = True  # Set the flag after speaking
     else:
-        close_dialog()  # Close the dialog when state is 0
+        close_dialog()
+        spoke = False  # Reset the flag when no component is selected
 
     # Draw joystick group
     screen.blit(joystick_group, joystick_rect)
@@ -365,10 +376,12 @@ while running:
     
     
     draw_text(screen, component_map[state], TEXT_POSITION)
+    
 
     # Update display
     pygame.display.flip()
     clock.tick(FPS)
+    
 
 pygame.quit()
 sys.exit()
