@@ -1,5 +1,7 @@
 import pygame
 import os
+from text2speech import tell
+
 
 # AI Dialog Constants
 AI_AVATAR_SIZE = (200, 200)
@@ -107,5 +109,6 @@ def render_ai_dialog(screen, text):
             for i, line in enumerate(wrapped_lines):
                 text_surface = game_font.render(line, True, TEXT_COLOR)
                 screen.blit(text_surface, (TEXT_POS[0], TEXT_POS[1] + i * (TEXT_SIZE + 5)))
+                tell(text)
     except Exception as e:
         print(f"Error rendering dialog: {e}")
