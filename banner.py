@@ -9,15 +9,15 @@ screen = pygame.display.set_mode((0, 0), pygame.FULLSCREEN)
 pygame.display.set_caption("The Atlas Protocol")
 
 # Load and scale the background image
-background = pygame.image.load("background.jpg")
+background = pygame.image.load("assets/background.jpg")
 background = pygame.transform.scale(background, screen.get_size())
 
 # Load the foreground image (play button)
-foreground = pygame.image.load("play.png")
+foreground = pygame.image.load("assets/play.png")
 foreground = pygame.transform.scale(foreground, (400, 200))
 
 # Load the logo image
-logo = pygame.image.load("logo.png")
+logo = pygame.image.load("assets/logo.png")
 logo = pygame.transform.scale(logo, (400, 500)) 
 
 # Get the size of the screen and the foreground image

@@ -21,6 +21,14 @@ screen_info = pygame.display.Info()
 SCREEN_WIDTH = screen_info.current_w
 SCREEN_HEIGHT = screen_info.current_h
 
+# Variables to store the count of specific components collected
+camera_count = 0
+gps_count = 0
+processor_count = 0
+data_count = 0
+nlp_count = 0
+commuication_count = 0
+
 # Variable to control the width of the game map (0.0 to 1.0)
 vary_width = 0.8  # Change this value to reduce the width of the game map
 
@@ -134,7 +142,6 @@ collect_image = pygame.transform.scale(collect_image, (150, 50))  # Adjust size 
 COLLECT_IMAGE_X = GAME_AREA_WIDTH + 150  # Horizontal center of game area
 COLLECT_IMAGE_Y = GAME_AREA_HEIGHT - 500 # 150 pixels from bottom of game area
 
-
 # Define overlay position coordinates directly
 overlay_x =  1380
 overlay_y =  90
@@ -157,6 +164,8 @@ CHAR_START_X = 19
 CHAR_START_Y = 13  
 
 current_ai_text = "Hello! Atlas here... Who am i speaking to?" 
+
+show_collect_image = True
 
 # Define the area for the sample image (top half of the right column)
 SAMPLE_IMAGE_OFFSET = 210  # Adjust this value to move the image higher or lower
@@ -288,7 +297,9 @@ while running:
         elif event.type == pygame.MOUSEBUTTONDOWN:
             if event.button == 1:  # Left mouse button
                 mouse_pos = pygame.mouse.get_pos()
-
+                collect_rect = collect_image.get_rect(topleft=(COLLECT_IMAGE_X, COLLECT_IMAGE_Y))
+                if collect_rect.collidepoint(mouse_pos):
+                    show_collect_image = False
                 # Check if the mouse is inside the joystick group area
                 if joystick_rect.collidepoint(mouse_pos):
                     # Calculate the relative position of the mouse within the joystick group
@@ -298,21 +309,29 @@ while running:
                     if arrow_up_rect.collidepoint(relative_pos):
                         character.move(0, -1)  # Move up
                         state = component_selector()
+                        if state != 0:
+                            show_collect_image = True
                     elif arrow_down_rect.collidepoint(relative_pos):
                         character.move(0, 1)   # Move down
                         state = component_selector()
+                        if state != 0:
+                            show_collect_image = True
                     elif arrow_left_rect.collidepoint(relative_pos):
                         character.move(-1, 0)  # Move left
                         state = component_selector()
+                        if state != 0:
+                            show_collect_image = True
                     elif arrow_right_rect.collidepoint(relative_pos):
                         character.move(1, 0)   # Move right
                         state = component_selector()
+                        if state != 0:
+                            show_collect_image = True
 
 
 
 
     # Clear screen
-    screen.fill((0,0,0 ))
+    screen.fill((0,0,0))
 
     # Draw background image in game area
     screen.blit(background_image, (0, 0))
@@ -320,7 +339,8 @@ while running:
     if state != 0:
         collect_image_rect = collect_image.get_rect()
         collect_image_rect.center = (COLLECT_IMAGE_X, COLLECT_IMAGE_Y)
-        screen.blit(collect_image, collect_image_rect)
+        if show_collect_image:
+            screen.blit(collect_image, (COLLECT_IMAGE_X, COLLECT_IMAGE_Y))
 
     if state != 0:
         open_dialog()  # Make sure the dialog is open
