@@ -1,4 +1,5 @@
 import pygame
+import pygame.freetype
 import os
 import sys
 from Atlas_Dialogbox import render_ai_dialog, initialize_dialog_assets, close_dialog, open_dialog
@@ -84,7 +85,7 @@ component_map = {
         3: "You found a Processor",
         4: "You found a Data Storage Component",
         5: "You found a NLP Module",
-        6: "You found a Communicaton Component"    
+        6: "You found a Communication Component"    
         }
 # Load background image
 background_image = pygame.image.load(os.path.join("assets", "map1.png")).convert()
@@ -143,7 +144,7 @@ overlay_rect = overlay_image.get_rect(topleft=(overlay_x, overlay_y))
 FONT_SIZE = 24
 TEXT_COLOR = (255, 255, 255)  # White text
 TEXT_POSITION = (GAME_AREA_WIDTH + 50, 325)  # Position in right panel
-font = pygame.font.Font("C:\Windows\Fonts\Arial.ttf" , FONT_SIZE)
+font = pygame.font.Font("C:/Windows/Fonts/Arial.ttf", FONT_SIZE)
 # Function to render text
 def draw_text(screen, text, position):
     text_surface = font.render(text, True, TEXT_COLOR)
@@ -155,6 +156,107 @@ show_overlay = True  # You can toggle this to True when needed
 # Initial character position (in grid coordinates)
 CHAR_START_X = 19
 CHAR_START_Y = 13  
+
+# Chatbot components
+
+INPUT_BOX_HEIGHT = 40
+INPUT_BOX_WIDTH = 300
+OUTPUT_BOX_HEIGHT = 150
+OUTPUT_BOX_WIDTH = 300
+INPUT_BOX_COLOR_INACTIVE = pygame.Color('lightskyblue3')
+INPUT_BOX_COLOR_ACTIVE = pygame.Color('dodgerblue2')
+TEXT_COLOR = pygame.Color('white')
+PLACEHOLDER_COLOR = pygame.Color('gray')
+
+class InputBox:
+    def __init__(self, x, y, w, h):
+        self.rect = pygame.Rect(x, y, w, h)
+        self.color = INPUT_BOX_COLOR_INACTIVE
+        self.text = ''
+        self.active = False
+        self.font = pygame.font.Font(None, 24)
+        self.placeholder = "Type here..."
+        self.txt_surface = self.font.render(self.placeholder, True, PLACEHOLDER_COLOR)  # Initial display as placeholder
+
+    def handle_event(self, event):
+        if event.type == pygame.MOUSEBUTTONDOWN:
+            # If the user clicked on the input box
+            if self.rect.collidepoint(event.pos):
+                self.active = True
+                self.color = INPUT_BOX_COLOR_ACTIVE
+            else:
+                self.active = False
+                self.color = INPUT_BOX_COLOR_INACTIVE
+        
+        if event.type == pygame.KEYDOWN:
+            if self.active:
+                if event.key == pygame.K_RETURN and self.text.strip():  # Only process if text isn't empty
+                    response = self.process_input(self.text)
+                    self.text = ''  # Clear the text
+                    self.update_surface()  # Update placeholder after clearing text
+                    return response
+                elif event.key == pygame.K_BACKSPACE:
+                    self.text = self.text[:-1]
+                    self.update_surface()
+                else:
+                    # Add character if we're not exceeding the box width
+                    if len(self.text) < 30:  # Limit text length
+                        self.text += event.unicode
+                        self.update_surface()
+        return None
+
+    def process_input(self, text):
+        # Add your chatbot logic here
+        return f"Bot: {text}"
+
+    def update_surface(self):
+        if self.text:
+            self.txt_surface = self.font.render(self.text, True, TEXT_COLOR)
+        else:
+            self.txt_surface = self.font.render(self.placeholder, True, PLACEHOLDER_COLOR)
+
+    def draw(self, screen):
+        # Draw the text box background
+        pygame.draw.rect(screen, pygame.Color('black'), self.rect)
+        # Draw the text or placeholder
+        screen.blit(self.txt_surface, (self.rect.x + 5, self.rect.y + 5))
+        # Draw the box border
+        pygame.draw.rect(screen, self.color, self.rect, 2)
+
+class OutputBox:
+    def __init__(self, x, y, w, h):
+        self.rect = pygame.Rect(x, y, w, h)
+        self.color = INPUT_BOX_COLOR_INACTIVE
+        self.text = []
+        self.font = pygame.font.Font(None, 32)
+        self.max_lines = 5
+
+    def add_message(self, message):
+        self.text.append(message)
+        if len(self.text) > self.max_lines:
+            self.text.pop(0)
+
+    def draw(self, screen):
+        # Draw the text box background
+        pygame.draw.rect(screen, pygame.Color('black'), self.rect)
+        
+        # Draw each line of text
+        y_offset = 5
+        for line in self.text:
+            txt_surface = self.font.render(line, True, TEXT_COLOR)
+            y_offset += 30
+        
+        # Draw the box border
+        pygame.draw.rect(screen, self.color, self.rect, 2)
+# Add these lines after creating your screen
+input_box_x = GAME_AREA_WIDTH + (SCREEN_WIDTH - GAME_AREA_WIDTH - INPUT_BOX_WIDTH) // 2 
+input_box_y = SCREEN_HEIGHT - JOYSTICK_OFFSET // 2 + 80
+input_box = InputBox(input_box_x, input_box_y, INPUT_BOX_WIDTH, INPUT_BOX_HEIGHT)
+
+
+output_box_x = input_box_x
+output_box_y = input_box_y - OUTPUT_BOX_HEIGHT - 10
+output_box = OutputBox(output_box_x, output_box_y, OUTPUT_BOX_WIDTH, OUTPUT_BOX_HEIGHT)
 
 
 show_collect_image = True
@@ -268,10 +370,13 @@ while running:
         
     else:
         close_dialog()
-        
+
     overlay_image = pygame.image.load("assets/components/" + str(state) + ".png").convert_alpha()  # Replace with your image path
     overlay_image = pygame.transform.scale(overlay_image, (150, 150)) 
     for event in pygame.event.get():
+        response = input_box.handle_event(event)
+        if response:
+            output_box.add_message(response)
         if event.type == pygame.QUIT:
             running = False
         elif event.type == pygame.KEYDOWN:
@@ -368,8 +473,9 @@ while running:
     # Update character position and animations
     all_sprites.update()
     all_sprites.draw(screen)
-    
-    
+
+    input_box.draw(screen)
+    output_box.draw(screen)
     
     
     draw_text(screen, component_map[state], TEXT_POSITION)
