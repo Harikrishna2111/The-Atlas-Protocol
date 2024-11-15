@@ -3,6 +3,9 @@ from langchain.chat_models import ChatOpenAI
 from langchain.chains import LLMChain
 from langchain.memory import ConversationSummaryBufferMemory
 from dotenv import load_dotenv
+import pyttsx3
+engine = pyttsx3.init()
+
 load_dotenv()
 
 chat = ChatOpenAI(model_name="gpt-4o-mini", temperature=0.2)
@@ -14,11 +17,15 @@ class ComponentManager:
             'NLP': False,
             'ALU': False,
             'Camera': True,
+            "Speech" : True,
+            "GPS" : False,
+            "Data Storage" : False,
+            "Communication" : True
         }
     def component_found(self, comp):
         if comp not in self.components:
             return "Component doesn't exist."
-        
+
         self.components[comp] = True
         
         user = "Risheekesh"
@@ -90,7 +97,7 @@ def interact_with_atlas(user_input, comp_manager):
     
     prompt_template = PromptTemplate(
         input_variables=["user_input"],
-        template="{user_input}"
+        template=system_prompt
     )
     conversation_chain = LLMChain(
         llm=chat,
@@ -105,6 +112,9 @@ if __name__ == "__main__":
     comp_manager = ComponentManager()
     print("Welcome to Atlas AI!")
     print(comp_manager.component_found('NLP')['text'])
+    if comp_manager.components['Communication']:
+        engine.say(comp_manager.component_found('NLP')['text'])
+        engine.runAndWait()
     while True:
         user_input = input("You: ")
         if user_input.lower() in ["exit", "quit"]:
