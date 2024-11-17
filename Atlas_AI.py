@@ -3,9 +3,6 @@ from langchain.chat_models import ChatOpenAI
 from langchain.chains import LLMChain
 from langchain.memory import ConversationSummaryBufferMemory
 from dotenv import load_dotenv
-import pyttsx3
-engine = pyttsx3.init()
-
 load_dotenv()
 
 chat = ChatOpenAI(model_name="gpt-4o-mini", temperature=0.2)
@@ -16,16 +13,15 @@ class ComponentManager:
         self.components = {
             'NLP': False,
             'ALU': False,
-            'Camera': True,
-            "Speech" : True,
-            "GPS" : False,
-            "Data Storage" : False,
-            "Communication" : True
+            'Camera': False,
+            'Processor': False,
+            'Data Storage': False,
+            'Communication': False
         }
     def component_found(self, comp):
         if comp not in self.components:
             return "Component doesn't exist."
-
+        
         self.components[comp] = True
         
         user = "Risheekesh"
@@ -72,9 +68,9 @@ class ComponentManager:
 
         ### Component-Based Behavior:
 
-        1. **NLP**: if 'NLP' is missing, don't respond to text normally and add any one of *&@#^% characters in between few letters in every word a few times, but respond to questions. Example: "H3LL0".
-        2. **ALU**: If 'ALU' is missing, you must make errors in every calculation (e.g., 2+2=5).
-        3. **Camera**: If 'Camera' is missing, avoid handling visual or camera-based tasks.
+        1. **NLP**: if 'NLP' is Not Obtained, don't respond to text normally and add any one of *&@#^% characters in between few letters in every word a few times, but respond to questions. Example: "H3LL0".
+        2. **ALU**: If 'ALU' is Not Obtained, you must make errors in every calculation (e.g., 2+2=5).
+        3. **Camera**: If 'Camera' is Not Obtained, avoid handling visual or camera-based tasks.
 
         ### General Rules:
         - No more adding new Components By Yourself
@@ -97,7 +93,7 @@ def interact_with_atlas(user_input, comp_manager):
     
     prompt_template = PromptTemplate(
         input_variables=["user_input"],
-        template=system_prompt
+        template="{user_input}"
     )
     conversation_chain = LLMChain(
         llm=chat,
@@ -110,11 +106,10 @@ def interact_with_atlas(user_input, comp_manager):
 
 if __name__ == "__main__":
     comp_manager = ComponentManager()
+    component = "ALU"
     print("Welcome to Atlas AI!")
-    print(comp_manager.component_found('NLP')['text'])
-    if comp_manager.components['Communication']:
-        engine.say(comp_manager.component_found('NLP')['text'])
-        engine.runAndWait()
+    print(comp_manager.component_found(component)['text'])
+    component = ""
     while True:
         user_input = input("You: ")
         if user_input.lower() in ["exit", "quit"]:

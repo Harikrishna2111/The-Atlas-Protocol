@@ -1,6 +1,7 @@
 import pygame
 import os
 
+
 # AI Dialog Constants
 AI_AVATAR_SIZE = (200, 200)
 DIALOG_BOX_SIZE = (800, 300)
