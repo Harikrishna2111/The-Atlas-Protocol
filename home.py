@@ -5,6 +5,7 @@ import sys
 from Atlas_Dialogbox import render_ai_dialog, initialize_dialog_assets, close_dialog, open_dialog
 from database import component_selector, component_count_holder, component_weights
 from text2speech import speak_text
+from Atlas_AI import ComponentManager, interact_with_atlas
 
 # Set the working directory to the script's location
 os.chdir(os.path.dirname(os.path.abspath(__file__)))
@@ -83,9 +84,18 @@ component_map = {
         1: "You found a Camera",
         2: "You found a GPS",
         3: "You found a Processor",
-        4: "You found a Data Storage Component",
-        5: "You found a NLP Module",
-        6: "You found a Communication Component"    
+        4: "You found a Data Storage",
+        5: "You found a NLP component",
+        6: "You found a Communication component"    
+        }
+component = {
+        0: "No Components Found",
+        1: "Camera",
+        2: "GPS",
+        3: "ALU",
+        4: "Data Storage",
+        5: "NLP",
+        6: "Communication"    
         }
 # Load background image
 background_image = pygame.image.load(os.path.join("assets", "map1.png")).convert()
@@ -158,7 +168,7 @@ CHAR_START_X = 19
 CHAR_START_Y = 13  
 
 # Chatbot components
-
+len_return_txt = 0
 INPUT_BOX_HEIGHT = 40
 INPUT_BOX_WIDTH = 300
 OUTPUT_BOX_HEIGHT = 150
@@ -248,14 +258,14 @@ class InputBox:
 
     def process_input(self, text):
         # Add your chatbot logic here
-        return f"Bot: {text}"
+        return f"Bot: " + interact_with_atlas(text, comp_manager)
 
 
 class OutputBox:
     def __init__(self, x, y, w, h):
         self.rect = pygame.Rect(x, y, w, h)
         self.color = INPUT_BOX_COLOR_INACTIVE
-        self.text = []
+        self.text = []  # List to store messages
         self.font = pygame.font.Font(None, 24)
         self.line_height = 35
         self.padding = 10
@@ -269,35 +279,40 @@ class OutputBox:
         current_line = []
         current_width = 0
 
+
         for word in words:
-            # Create a surface for the word to measure its width
-            word_surface = self.font.render(word + ' ', True, TEXT_COLOR)
-            word_width = word_surface.get_width()
+            # Render the word to calculate its width
+            word_width = self.font.render(word, True, pygame.Color('white')).get_width()
 
             if current_width + word_width <= self.max_line_width:
                 current_line.append(word)
-                current_width += word_width
+                # Add word width + space width to current line width
+                current_width += word_width + self.font.size(' ')[0]
             else:
-                if current_line:  # Add the current line if it's not empty
-                    lines.append(' '.join(current_line))
+                # Add the current line to lines and reset for the next line
+                lines.append(' '.join(current_line))
                 current_line = [word]
                 current_width = word_width
 
-        if current_line:  # Add the last line
+        # Add the last line if it exists
+        if current_line:
             lines.append(' '.join(current_line))
-        
+
         return lines
 
+
     def add_message(self, message):
-        # Wrap long messages into multiple lines
-        wrapped_lines = self.wrap_text(message)
-        self.text.extend(wrapped_lines)
-        
-        # Keep only the messages that can be displayed
-        if len(self.text) > self.visible_lines:
-            self.text = self.text[-self.visible_lines:]
+        """Add a new message to the chat box"""
+        if isinstance(message, str):  # Make sure message is a string
+            wrapped_lines = self.wrap_text(message)
+            self.text.extend(wrapped_lines)
+            
+            # Keep only the messages that can be displayed
+            while len(self.text) > self.visible_lines:
+                self.text.pop(0)  # Remove oldest messages
 
     def draw(self, screen):
+        """Draw the chat box and its contents"""
         # Draw the box background
         pygame.draw.rect(screen, pygame.Color('black'), self.rect)
         
@@ -306,14 +321,15 @@ class OutputBox:
         
         # Draw messages from bottom to top
         y_offset = self.text_surface.get_height()
+        
+        # Iterate through messages in reverse order
         for message in reversed(self.text):
-            txt_surface = self.font.render(message, True, TEXT_COLOR)
-            # Position text from bottom
-            y_offset -= self.line_height
-            self.text_surface.blit(txt_surface, (0, y_offset))
-            
-            if y_offset < 0:  # Stop if we've reached the top of the box
-                break
+            if isinstance(message, str):  # Ensure message is a string
+                txt_surface = self.font.render(message, True, TEXT_COLOR)
+                # Position text from bottom
+                y_offset -= self.line_height
+                if y_offset >= 0:  # Only draw if within bounds
+                    self.text_surface.blit(txt_surface, (0, y_offset))
         
         # Draw the text surface onto the screen
         screen.blit(self.text_surface, 
@@ -324,20 +340,19 @@ class OutputBox:
         pygame.draw.rect(screen, self.color, self.rect, 2)
 
 
+comp_manager = ComponentManager()
 
-
-def process_message(input_text):
-    # Add both user input and response to output box
-    output_box.add_message(f"You: {input_text}")
+async def process_message(input_text):
+    # # Add both user input and response to output box
+    # output_box.add_message(f"You: {input_text}")
     # Add bot response (this is just an example)
-    response = f"Bot: {input_text}"
+    response = f"Bot: " + await interact_with_atlas(input_text, comp_manager)
     output_box.add_message(response)
 
 # Add these lines after creating your screen
 input_box_x = GAME_AREA_WIDTH + (SCREEN_WIDTH - GAME_AREA_WIDTH - INPUT_BOX_WIDTH) // 2 
 input_box_y = SCREEN_HEIGHT - JOYSTICK_OFFSET // 2 + 80
 input_box = InputBox(input_box_x, input_box_y, INPUT_BOX_WIDTH, INPUT_BOX_HEIGHT)
-
 
 output_box_x = input_box_x
 output_box_y = input_box_y - OUTPUT_BOX_HEIGHT - 10
@@ -497,8 +512,12 @@ while running:
                     show_collect_image = False
                     collected = True
                     component_count_holder[state - 1] += 1
-                    if component_count_holder[state - 1] >= 5:
+                    if component_count_holder[state - 1] >= 1:
                         component_weights[state] = 0
+                        current_ai_text = comp_manager.component_found(component[state])['text']
+
+
+
                 # Check if the mouse is inside the joystick group area
                 if joystick_rect.collidepoint(mouse_pos):
                     # Calculate the relative position of the mouse within the joystick group
@@ -543,10 +562,12 @@ while running:
         open_dialog()  # Make sure the dialog is open
         render_ai_dialog(screen, current_ai_text)
         if not spoke:  # Check if we haven't spoken yet
-            current_ai_text = component_map[state] 
+            current_ai_text = comp_manager.component_found(component[state])['text']
 
             speak_text(current_ai_text)
+            len_return_txt += len(current_ai_text)
             spoke = True  # Set the flag after speaking
+            print(len_return_txt)
     else:
         close_dialog()
         spoke = False  # Reset the flag when no component is selected

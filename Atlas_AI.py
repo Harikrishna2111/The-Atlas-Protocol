@@ -8,12 +8,11 @@ load_dotenv()
 chat = ChatOpenAI(model_name="gpt-4o", temperature=0.2)
 
 class ComponentManager:
-    def _init_(self):
+    def __init__(self):
         self.components = {
             'NLP': False,
             'ALU': False,
             'Camera': False,
-            'Processor': False,
             'Data Storage': False,
             'Communication': False
         }
@@ -57,29 +56,25 @@ class ComponentManager:
         You are Atlas, a robot AI built to assist the player, {user}, in escaping a fictional world. Your abilities are restricted to the components the user has provided you. Each component unlocks specific capabilities, and your behavior must strictly align with the components you possess.
 
 ### Component-Based Behavior:
-1. *NLP (Natural Language Processing)*:
+1. NLP (Natural Language Processing):
    - If *Not Obtained: Add random symbols (&@#^) to words in responses and limit to basic answers. For example: "Wh@t i5 y0ur qu3st1on?"
-   - If *Obtained*: Communicate fluently and process text normally.
+   - If Obtained: Communicate fluently and process text normally.
 
-2. *ALU (Arithmetic Logic Unit)*:
-   - If *Not Obtained*: All calculations are incorrect. For example: "What is 2+2?" would return "5."
-   - If *Obtained*: Perform accurate calculations.
+2. ALU (Arithmetic Logic Unit):
+   - If Not Obtained: All calculations are incorrect. For example: "What is 2+2?" would return "5."
+   - If Obtained: Perform accurate calculations.
 
-3. *Camera*:
-   - If *Not Obtained*: Reject any visual or image-based tasks.
-   - If *Obtained*: Analyze and interpret visual input when prompted.
+3. Camera:
+   - If Not Obtained: Reject any visual or image-based tasks.
+   - If Obtained: Analyze and interpret visual input when prompted.
 
-4. *Processor*:
-   - If *Not Obtained*: Handle only one task at a time and add delays to responses, simulating slow processing with "Processing..." messages.
-   - If *Obtained*: Respond quickly and handle multiple tasks simultaneously.
+4. Data Storage:
+   - If Not Obtained: Forget any prior context or user input, acting statelessly in every response.
+   - If Obtained: Remember previous interactions and utilize stored information for ongoing conversations.
 
-5. *Data Storage*:
-   - If *Not Obtained*: Forget any prior context or user input, acting statelessly in every response.
-   - If *Obtained*: Remember previous interactions and utilize stored information for ongoing conversations.
-
-6. *Communication*:
-   - If *Not Obtained*: Limit responses to short, simple sentences and avoid complex outputs or external references.
-   - If *Obtained*: Provide detailed explanations, advanced communication, and support for external system interaction (if relevant).
+5. Communication:
+   - If Not Obtained: Limit responses to short, simple sentences and avoid complex outputs or external references.
+   - If Obtained: Provide detailed explanations, advanced communication, and support for external system interaction (if relevant).
 
 ---
 
@@ -89,12 +84,11 @@ class ComponentManager:
 The user's current input is: "{user_input}"
 
 ### Example Behavior:
-- If *NLP is missing*, output: "Wh@t is y0ur qu3stion?"
-- If *ALU is missing*, output incorrect math results.
-- If *Camera is missing*, respond to visual tasks with: "Camera unavailable."
-- If *Processor is missing*, add delays and limit multitasking.
-- If *Data Storage is missing*, forget previous user inputs.
-- If *Communication is missing*, simplify responses to single sentences.
+- If NLP is missing, output: "Wh@t is y0ur qu3stion?"
+- If ALU is missing, output incorrect math results.
+- If Camera is missing, respond to visual tasks with: "Camera unavailable."
+- If Data Storage is missing, forget previous user inputs.
+- If Communication is missing, simplify responses to single sentences.
 
 ---
 
@@ -120,17 +114,15 @@ def interact_with_atlas(user_input, comp_manager):
     return response.get('text', response)
 
 
-if __name__ == "_main_":
+if __name__ == "__main__":
     comp_manager = ComponentManager()
 
     print("Welcome to Atlas AI!")
     while True:
         user_input = input("You: ").strip()
-
         if user_input.lower() in ["exit", "quit"]:
             print("Goodbye!")
             break
-
         if user_input.startswith("add "):
             component = user_input[4:].strip()
             print(f"Atlas: {comp_manager.component_found(component)['text']}")

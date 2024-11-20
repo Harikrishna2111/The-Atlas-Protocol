@@ -4,7 +4,7 @@ import os
 
 # AI Dialog Constants
 AI_AVATAR_SIZE = (200, 200)
-DIALOG_BOX_SIZE = (800, 300)
+DIALOG_BOX_SIZE = (850, 350)
 TEXT_COLOR = (0, 0, 0)
 TEXT_SIZE = 20
 TEXT_WIDTH = 360
@@ -16,7 +16,7 @@ SCREEN_HEIGHT = 800  # Adjust as needed
 # Dialog positioning
 AI_AVATAR_POS = (15, 740)
 DIALOG_BOX_POS = (-30, 600)
-TEXT_POS = (185, 720)
+TEXT_POS = (210, 720)
 
 # Global variables
 ai_avatar = None
