@@ -176,11 +176,12 @@ class InputBox:
         self.active = False
         self.font = pygame.font.Font(None, 24)
         self.placeholder = "Type here..."
-        self.txt_surface = self.font.render(self.placeholder, True, PLACEHOLDER_COLOR)  # Initial display as placeholder
+        self.txt_surface = self.font.render(self.placeholder, True, PLACEHOLDER_COLOR)
+        self.max_chars = 100  # Increased character limit
+        self.scroll_offset = 0  # Track horizontal scroll position
 
     def handle_event(self, event):
         if event.type == pygame.MOUSEBUTTONDOWN:
-            # If the user clicked on the input box
             if self.rect.collidepoint(event.pos):
                 self.active = True
                 self.color = INPUT_BOX_COLOR_ACTIVE
@@ -190,24 +191,36 @@ class InputBox:
         
         if event.type == pygame.KEYDOWN:
             if self.active:
-                if event.key == pygame.K_RETURN and self.text.strip():  # Only process if text isn't empty
+                if event.key == pygame.K_RETURN and self.text.strip():
                     response = self.process_input(self.text)
-                    self.text = ''  # Clear the text
-                    self.update_surface()  # Update placeholder after clearing text
+                    self.text = ''
+                    self.scroll_offset = 0  # Reset scroll when clearing text
+                    self.update_surface()
                     return response
                 elif event.key == pygame.K_BACKSPACE:
                     self.text = self.text[:-1]
+                    # Adjust scroll offset when deleting
+                    if self.scroll_offset > 0:
+                        self.scroll_offset = max(0, self.scroll_offset - 5)
                     self.update_surface()
                 else:
-                    # Add character if we're not exceeding the box width
-                    if len(self.text) < 30:  # Limit text length
+                    # Add character if we're not exceeding the maximum
+                    if len(self.text) < self.max_chars:
                         self.text += event.unicode
                         self.update_surface()
+                        # Adjust scroll offset if text exceeds box width
+                        self.adjust_scroll()
         return None
 
-    def process_input(self, text):
-        # Add your chatbot logic here
-        return f"Bot: {text}"
+    def adjust_scroll(self):
+        text_width = self.txt_surface.get_width()
+        box_width = self.rect.width - 10  # Account for padding
+        
+        if text_width > box_width:
+            # Scroll to show the end of the text
+            self.scroll_offset = text_width - box_width
+        else:
+            self.scroll_offset = 0
 
     def update_surface(self):
         if self.text:
@@ -218,36 +231,108 @@ class InputBox:
     def draw(self, screen):
         # Draw the text box background
         pygame.draw.rect(screen, pygame.Color('black'), self.rect)
-        # Draw the text or placeholder
-        screen.blit(self.txt_surface, (self.rect.x + 5, self.rect.y + 5))
+        
+        # Create a surface for clipping
+        clip_rect = pygame.Rect(self.rect.x + 5, self.rect.y, self.rect.width - 10, self.rect.height)
+        screen.set_clip(clip_rect)
+        
+        # Draw the text with scroll offset
+        text_pos = (self.rect.x + 5 - self.scroll_offset, self.rect.y + 5)
+        screen.blit(self.txt_surface, text_pos)
+        
+        # Reset clip
+        screen.set_clip(None)
+        
         # Draw the box border
         pygame.draw.rect(screen, self.color, self.rect, 2)
+
+    def process_input(self, text):
+        # Add your chatbot logic here
+        return f"Bot: {text}"
+
 
 class OutputBox:
     def __init__(self, x, y, w, h):
         self.rect = pygame.Rect(x, y, w, h)
         self.color = INPUT_BOX_COLOR_INACTIVE
         self.text = []
-        self.font = pygame.font.Font(None, 32)
-        self.max_lines = 5
+        self.font = pygame.font.Font(None, 24)
+        self.line_height = 35
+        self.padding = 10
+        self.visible_lines = (h - 2 * self.padding) // self.line_height
+        self.text_surface = pygame.Surface((w - 2 * self.padding, h - 2 * self.padding))
+        self.max_line_width = w - 2 * self.padding
+
+    def wrap_text(self, text):
+        words = text.split()
+        lines = []
+        current_line = []
+        current_width = 0
+
+        for word in words:
+            # Create a surface for the word to measure its width
+            word_surface = self.font.render(word + ' ', True, TEXT_COLOR)
+            word_width = word_surface.get_width()
+
+            if current_width + word_width <= self.max_line_width:
+                current_line.append(word)
+                current_width += word_width
+            else:
+                if current_line:  # Add the current line if it's not empty
+                    lines.append(' '.join(current_line))
+                current_line = [word]
+                current_width = word_width
+
+        if current_line:  # Add the last line
+            lines.append(' '.join(current_line))
+        
+        return lines
 
     def add_message(self, message):
-        self.text.append(message)
-        if len(self.text) > self.max_lines:
-            self.text.pop(0)
+        # Wrap long messages into multiple lines
+        wrapped_lines = self.wrap_text(message)
+        self.text.extend(wrapped_lines)
+        
+        # Keep only the messages that can be displayed
+        if len(self.text) > self.visible_lines:
+            self.text = self.text[-self.visible_lines:]
 
     def draw(self, screen):
-        # Draw the text box background
+        # Draw the box background
         pygame.draw.rect(screen, pygame.Color('black'), self.rect)
         
-        # Draw each line of text
-        y_offset = 5
-        for line in self.text:
-            txt_surface = self.font.render(line, True, TEXT_COLOR)
-            y_offset += 30
+        # Clear the text surface
+        self.text_surface.fill(pygame.Color('black'))
+        
+        # Draw messages from bottom to top
+        y_offset = self.text_surface.get_height()
+        for message in reversed(self.text):
+            txt_surface = self.font.render(message, True, TEXT_COLOR)
+            # Position text from bottom
+            y_offset -= self.line_height
+            self.text_surface.blit(txt_surface, (0, y_offset))
+            
+            if y_offset < 0:  # Stop if we've reached the top of the box
+                break
+        
+        # Draw the text surface onto the screen
+        screen.blit(self.text_surface, 
+                   (self.rect.x + self.padding, 
+                    self.rect.y + self.padding))
         
         # Draw the box border
         pygame.draw.rect(screen, self.color, self.rect, 2)
+
+
+
+
+def process_message(input_text):
+    # Add both user input and response to output box
+    output_box.add_message(f"You: {input_text}")
+    # Add bot response (this is just an example)
+    response = f"Bot: {input_text}"
+    output_box.add_message(response)
+
 # Add these lines after creating your screen
 input_box_x = GAME_AREA_WIDTH + (SCREEN_WIDTH - GAME_AREA_WIDTH - INPUT_BOX_WIDTH) // 2 
 input_box_y = SCREEN_HEIGHT - JOYSTICK_OFFSET // 2 + 80
@@ -257,6 +342,7 @@ input_box = InputBox(input_box_x, input_box_y, INPUT_BOX_WIDTH, INPUT_BOX_HEIGHT
 output_box_x = input_box_x
 output_box_y = input_box_y - OUTPUT_BOX_HEIGHT - 10
 output_box = OutputBox(output_box_x, output_box_y, OUTPUT_BOX_WIDTH, OUTPUT_BOX_HEIGHT)
+output_box.add_message("Welcome to Atlas AI!")
 
 
 show_collect_image = True
@@ -398,6 +484,10 @@ while running:
                 character.move(1, 0)
                 state = component_selector()
                 collected = False
+            if event.key == pygame.K_RETURN and input_box.text.strip():
+                message = input_box.text
+                process_message(message)
+                input_box.text = ''  # Clear input box
 
         elif event.type == pygame.MOUSEBUTTONDOWN:
             if event.button == 1:  # Left mouse button
@@ -479,7 +569,7 @@ while running:
     
     
     draw_text(screen, component_map[state], TEXT_POSITION)
-    
+
 
     # Update display
     pygame.display.flip()
