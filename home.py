@@ -514,7 +514,9 @@ while running:
                     component_count_holder[state - 1] += 1
                     if component_count_holder[state - 1] >= 1:
                         component_weights[state] = 0
+
                         current_ai_text = (comp_manager.component_found(component[state]))['text']
+
 
 
 

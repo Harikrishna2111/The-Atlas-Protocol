@@ -29,12 +29,17 @@ class ComponentManager:
 
         # Mark the component as obtained
         self.components[comp] = True
+            return "Component doesn't exist."
+
+        self.components[comp] = True  # Activate the component
 
         user = "Risheekesh"
         system_prompt = f"""
         You are Atlas, a Robot AI. The player {user} has just added the '{comp}' component.
         Give a Desciption About the Component you have obtained.
         Respond in 2 lines only.
+        Give a Desciption About the Component you have obtained
+        Respond in 2 lines only
         """
 
         prompt_template = PromptTemplate(
@@ -50,6 +55,7 @@ class ComponentManager:
         # Generate the response
         response = response_chain.invoke({"comp": comp})
         return response
+        return response_chain.invoke({"comp": comp})
 
     def generate_prompt(self, user_input):
         """Generates the system prompt dynamically based on active components."""
@@ -89,20 +95,10 @@ class ComponentManager:
 ### Active Components:
 {component_status}
 
-The user's current input is: "{user_input}"
+The user's current input is: "{user_input}" """
 
-### Example Behavior:
-- If NLP is missing, output: "Wh@t is y0ur qu3stion?"
-- If ALU is missing, output incorrect math results.
-- If Camera is missing, respond to visual tasks with: "Camera unavailable."
-- If Data Storage is missing, forget previous user inputs.
-- If Communication is missing, simplify responses to single sentences.
 
----
-
-Respond in 2 lines appropriately based on the components available.
-        """
-        return system_prompt
+       return system_prompt
 
 
 def interact_with_atlas(user_input, comp_manager):
@@ -137,3 +133,4 @@ if __name__ == "__main__":
         else:
             response = interact_with_atlas(user_input, comp_manager)
             print(f"Atlas: {response}")
+
