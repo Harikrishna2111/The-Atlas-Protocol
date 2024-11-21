@@ -512,10 +512,20 @@ while running:
                     show_collect_image = False
                     collected = True
                     component_count_holder[state - 1] += 1
+                    if not spoke:  # Check if we haven't spoken yet
+                        current_ai_text = comp_manager.component_found(component[state])['text']
+                        open_dialog()  # Make sure the dialog is open
+                        render_ai_dialog(screen, current_ai_text)
+                        speak_text(current_ai_text)
+                        len_return_txt += len(current_ai_text)
+                        spoke = True  # Set the flag after speaking
+                    else:
+                        close_dialog()
+                        spoke = False  # Reset the flag when no component is selected
                     if component_count_holder[state - 1] >= 1:
                         component_weights[state] = 0
 
-                        current_ai_text = (comp_manager.component_found(component[state]))['text']
+                        
 
 
 
@@ -561,15 +571,12 @@ while running:
         if not collected:
             screen.blit(collect_image, (COLLECT_IMAGE_X, COLLECT_IMAGE_Y))
     if state != 0:
-        open_dialog()  # Make sure the dialog is open
-        render_ai_dialog(screen, current_ai_text)
-        if not spoke:  # Check if we haven't spoken yet
-            current_ai_text = comp_manager.component_found(component[state])['text']
+        if collected == True:
+            open_dialog()  # Make sure the dialog is open
+            render_ai_dialog(screen, current_ai_text)
 
-            speak_text(current_ai_text)
-            len_return_txt += len(current_ai_text)
-            spoke = True  # Set the flag after speaking
-            print(len_return_txt)
+        
+        print(len_return_txt)
     else:
         close_dialog()
         spoke = False  # Reset the flag when no component is selected
