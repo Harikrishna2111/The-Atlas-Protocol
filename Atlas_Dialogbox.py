@@ -16,7 +16,7 @@ SCREEN_HEIGHT = 800  # Adjust as needed
 # Dialog positioning
 AI_AVATAR_POS = (15, 740)
 DIALOG_BOX_POS = (-30, 600)
-TEXT_POS = (210, 720)
+TEXT_POS = (235, 720)
 
 # Global variables
 ai_avatar = None

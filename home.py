@@ -83,7 +83,7 @@ component_map = {
         0: "No Components Found",
         1: "You found a Camera",
         2: "You found a GPS",
-        3: "You found a Processor",
+        3: "You found an ALU",
         4: "You found a Data Storage",
         5: "You found a NLP component",
         6: "You found a Communication component"    
