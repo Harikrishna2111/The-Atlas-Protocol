@@ -153,7 +153,7 @@ overlay_rect = overlay_image.get_rect(topleft=(overlay_x, overlay_y))
 
 FONT_SIZE = 24
 TEXT_COLOR = (255, 255, 255)  # White text
-TEXT_POSITION = (GAME_AREA_WIDTH + 50, 325)  # Position in right panel
+TEXT_POSITION = (GAME_AREA_WIDTH + 10, 325)  # Position in right panel
 font = pygame.font.Font("C:/Windows/Fonts/Arial.ttf", FONT_SIZE)
 # Function to render text
 def draw_text(screen, text, position):
