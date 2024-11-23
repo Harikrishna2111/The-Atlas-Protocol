@@ -79,15 +79,7 @@ grid = [[1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],
      [1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
      [1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
      [1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]]
-component_map = {
-        0: "No Components Found",
-        1: "You found a Camera",
-        2: "You found a GPS",
-        3: "You found an ALU",
-        4: "You found a Data Storage",
-        5: "You found a NLP component",
-        6: "You found a Communication component"    
-        }
+
 component = {
         0: "No Components Found",
         1: "Camera",
@@ -153,7 +145,7 @@ overlay_rect = overlay_image.get_rect(topleft=(overlay_x, overlay_y))
 
 FONT_SIZE = 24
 TEXT_COLOR = (255, 255, 255)  # White text
-TEXT_POSITION = (GAME_AREA_WIDTH + 10, 325)  # Position in right panel
+TEXT_POSITION = (GAME_AREA_WIDTH + 50, 325)  # Position in right panel
 font = pygame.font.Font("C:/Windows/Fonts/Arial.ttf", FONT_SIZE)
 # Function to render text
 def draw_text(screen, text, position):
@@ -173,8 +165,8 @@ INPUT_BOX_HEIGHT = 40
 INPUT_BOX_WIDTH = 300
 OUTPUT_BOX_HEIGHT = 150
 OUTPUT_BOX_WIDTH = 300
-INPUT_BOX_COLOR_INACTIVE = pygame.Color('lightskyblue3')
-INPUT_BOX_COLOR_ACTIVE = pygame.Color('dodgerblue2')
+INPUT_BOX_COLOR_INACTIVE = pygame.Color('lightsalmon2')
+INPUT_BOX_COLOR_ACTIVE = pygame.Color('lightsalmon2')
 TEXT_COLOR = pygame.Color('white')
 PLACEHOLDER_COLOR = pygame.Color('gray')
 
@@ -363,7 +355,7 @@ output_box.add_message("Welcome to Atlas AI!")
 show_collect_image = True
 spoke = False
 collected = False
-current_ai_text = component_map[state] 
+current_ai_text = component[state] 
 
 
 # Define the area for the sample image (top half of the right column)
@@ -422,9 +414,9 @@ class Character(pygame.sprite.Sprite):
             elif dx > 0:
                 self.direction = "right"
             elif dy < 0:
-                self.direction = "down"
-            elif dy > 0:
                 self.direction = "up"
+            elif dy > 0:
+                self.direction = "down"
             
             state = component_selector() 
 
@@ -464,7 +456,7 @@ while running:
     # Check state and display dialog
     if state != 0:
         # Get the appropriate message from component_map
-        message = component_map.get(state, "No Components Found")
+        message = component.get(state, "No Components Found")
         # Open the dialog with the message
         open_dialog()
         render_ai_dialog(screen, message)
@@ -512,11 +504,14 @@ while running:
                     show_collect_image = False
                     collected = True
                     component_count_holder[state - 1] += 1
+                    # if state == 6:
+                    #     comp_manager.components['Communication'] = True
                     if not spoke:  # Check if we haven't spoken yet
                         current_ai_text = comp_manager.component_found(component[state])['text']
                         open_dialog()  # Make sure the dialog is open
                         render_ai_dialog(screen, current_ai_text)
-                        speak_text(current_ai_text)
+                        if comp_manager.components['Communication']:
+                            speak_text(current_ai_text)
                         len_return_txt += len(current_ai_text)
                         spoke = True  # Set the flag after speaking
                     else:
@@ -597,8 +592,13 @@ while running:
     input_box.draw(screen)
     output_box.draw(screen)
     
-    
-    draw_text(screen, component_map[state], TEXT_POSITION)
+    if state == 0:
+        TEXT_POSITION = (GAME_AREA_WIDTH + 50, 325)
+    elif state == 2 or state == 3 or state == 5:
+        TEXT_POSITION = (GAME_AREA_WIDTH + 70, 325)
+    else:
+        TEXT_POSITION = (GAME_AREA_WIDTH + 100, 325)
+    draw_text(screen, component[state], TEXT_POSITION)
 
 
     # Update display
