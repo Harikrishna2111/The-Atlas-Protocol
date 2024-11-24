@@ -2,6 +2,7 @@ from langchain.prompts import PromptTemplate
 from langchain.chat_models import ChatOpenAI
 from langchain.chains import LLMChain
 from dotenv import load_dotenv
+import copy
 
 load_dotenv()
 
@@ -17,6 +18,19 @@ class ComponentManager:
             'Data Storage': False,
             'Communication': False
         }
+        self.memory = []  # Store conversation history when Data Storage is enabled
+
+    def store_memory(self, user_input, response):
+        """Store user input and Atlas response if Data Storage is active."""
+        if self.components['Data Storage']:
+            # Append new interaction
+            self.memory.append({"user": user_input, "atlas": response})
+            # Retain only the last two interactions
+            self.memory = self.memory[-2:]
+
+    def get_memory(self):
+        """Retrieve memory if Data Storage is active."""
+        return self.memory if self.components['Data Storage'] else []
 
     def component_found(self, comp):
         """Updates component status and explains what the component does."""
@@ -33,7 +47,7 @@ class ComponentManager:
         user = "Risheekesh"
         system_prompt = f"""
         You are Atlas, a Robot AI. The player {user} has just added the '{comp}' component.
-        Give a Desciption About the Component you have obtained.
+        Give a Description About the Component you have obtained.
         Respond in 2 lines only.
         """
 
@@ -52,11 +66,17 @@ class ComponentManager:
         return response
 
     def generate_prompt(self, user_input):
-        """Generates the system prompt dynamically based on active components."""
+        """Generates the system prompt dynamically based on active components and memory."""
         active_components = {
             k: "Obtained" if v else "Not Obtained" for k, v in self.components.items()}
         component_status = "\n".join(
             [f"{k}: {v}" for k, v in active_components.items()])
+
+        # Include memory if Data Storage is active
+        memory = self.get_memory()
+        memory_text = "\n".join(
+            [f"User: {m['user']}\nAtlas: {m['atlas']}" for m in memory]
+        ) if memory else "No prior memory available."
 
         user = "Risheekesh"
 
@@ -89,6 +109,9 @@ class ComponentManager:
 ### Active Components:
 {component_status}
 
+### Memory of Prior Interactions (if Data Storage is available):
+{memory_text}
+
 The user's current input is: "{user_input}"
 
 ### Example Behavior:
@@ -118,8 +141,12 @@ def interact_with_atlas(user_input, comp_manager):
         llm=chat,
         prompt=prompt_template,
     )
-    response = conversation_chain.invoke({"user_input": system_prompt})
-    return response.get('text', response)
+    response = conversation_chain.invoke({"user_input": system_prompt}).get('text', '')
+
+    # Store memory if Data Storage is active
+    comp_manager.store_memory(user_input, response)
+
+    return response
 
 
 if __name__ == "__main__":
