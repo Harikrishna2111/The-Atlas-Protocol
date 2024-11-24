@@ -69,7 +69,7 @@ grid = [[1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],
      [1,0,0,0,1,0,1,1,1,1,1,1,1,0,1,0,0,0,0,0,0,0,0,0,1],
      [1,0,0,0,1,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0,0,1],
      [1,0,0,0,1,1,1,1,1,0,0,1,1,1,1,0,0,0,0,0,0,0,0,0,1],
-     [1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+     [1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0],
      [1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
      [1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
      [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],
@@ -170,6 +170,18 @@ INPUT_BOX_COLOR_ACTIVE = pygame.Color('lightsalmon2')
 TEXT_COLOR = pygame.Color('white')
 PLACEHOLDER_COLOR = pygame.Color('gray')
 
+# Initialize the mixer
+pygame.mixer.init()
+
+# Load background music
+pygame.mixer.music.load("bgm.mp3")  # Replace with your music file
+
+# Play the music indefinitely (-1 for infinite looping)
+pygame.mixer.music.play(-1)
+
+# Set the volume (optional, 0.0 to 1.0)
+pygame.mixer.music.set_volume(0.5)
+
 class InputBox:
     def __init__(self, x, y, w, h):
         self.rect = pygame.Rect(x, y, w, h)
@@ -258,7 +270,7 @@ class OutputBox:
         self.rect = pygame.Rect(x, y, w, h)
         self.color = INPUT_BOX_COLOR_INACTIVE
         self.text = []  # List to store messages
-        self.font = pygame.font.Font(None, 24)
+        self.font = pygame.font.Font(None, 16)
         self.line_height = 35
         self.padding = 10
         self.visible_lines = (h - 2 * self.padding) // self.line_height
