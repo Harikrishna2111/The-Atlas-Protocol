@@ -6,12 +6,18 @@ from Atlas_Dialogbox import render_ai_dialog, initialize_dialog_assets, close_di
 from database import component_selector, component_count_holder, component_weights
 from text2speech import speak_text
 from Atlas_AI import ComponentManager, interact_with_atlas
+from datetime import datetime
+from pygamepopup.components import Button, InfoBox
+from pygamepopup.menu_manager import MenuManager
+import pygamepopup
+
 
 # Set the working directory to the script's location
 os.chdir(os.path.dirname(os.path.abspath(__file__)))
 
 # Initialize Pygame
 pygame.init()
+pygamepopup.init()
 
 initialize_dialog_assets()
 
@@ -290,6 +296,15 @@ class InputBox:
         # Add your chatbot logic here
         return f"Bot: " + interact_with_atlas(text, comp_manager)
 
+# Add this function to handle screenshots
+def take_screenshot(screen):
+    # Generate filename with timestamp
+    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+    filename = f"screenshot_{timestamp}.png"
+    
+    # Get the surface and save it
+    pygame.image.save(screen, filename)
+    return filename
 
 class OutputBox:
     def __init__(self, x, y, w, h):
@@ -394,7 +409,7 @@ show_collect_image = True
 spoke = False
 collected = False
 current_ai_text = component[state] 
-
+camera_text = False
 
 # Define the area for the sample image (top half of the right column)
 SAMPLE_IMAGE_OFFSET = 210  # Adjust this value to move the image higher or lower
@@ -533,6 +548,10 @@ while running:
                 message = input_box.text
                 process_message(message)
                 input_box.text = ''  # Clear input box
+            if event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_c and pygame.key.get_mods() & pygame.KMOD_ALT and comp_manager.components['Camera']:  # Left ALT key
+                    screenshot_file = take_screenshot(screen)
+                    print(f"Screenshot saved as: {screenshot_file}")
 
         elif event.type == pygame.MOUSEBUTTONDOWN:
             if event.button == 1:  # Left mouse button
@@ -619,9 +638,12 @@ while running:
 
     # Draw sample image in top half
     screen.blit(sample_image, sample_image_rect)
-    
+    menu_manager = MenuManager(screen)
+    if comp_manager.components['Camera'] and not camera_text:
+        output_box.add_message("Press alt+C to take screenshot")
+        camera_text = True
     if show_overlay:
-        screen.blit(overlay_image, overlay_rect)  # Using separate overlay_rect
+        screen.blit(overlay_image, overlay_rect) 
 
     # Update character position and animations
     all_sprites.update()
