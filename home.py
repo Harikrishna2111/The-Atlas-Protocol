@@ -33,7 +33,7 @@ GAME_AREA_HEIGHT = SCREEN_HEIGHT
 
 # Calculate the tile size based on the game area dimensions
 TILE_SIZE = GAME_AREA_WIDTH // GRID_SIZE  # Calculate without scaling
-CHARACTER_SCALE = 0.9  # Adjust this value to make the character smaller or larger
+CHARACTER_SCALE = 0.75  # Adjust this value to make the character smaller or larger
 CHARACTER_SIZE = int(TILE_SIZE * CHARACTER_SCALE)  # Scale character separately
 
 # Move speed adjustment based on CHARACTER_SCALE
@@ -80,6 +80,32 @@ grid = [[1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],
      [1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
      [1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]]
 
+grid1 = [[1,1,1,0,0,0,0,0,1,1,1,1,1,1,1,1,1,1,0,0,0,0,0,1,1],
+     [1,0,0,0,0,0,0,0,1,1,1,1,1,1,1,1,1,1,0,0,0,0,0,1,1],
+     [0,0,0,0,0,0,0,0,1,1,1,1,1,1,1,1,1,1,0,0,0,0,0,0,0],
+     [1,1,1,1,1,0,0,1,1,1,1,1,1,1,1,1,1,1,1,0,0,1,1,1,1],
+     [1,1,1,1,1,0,0,1,1,1,1,1,1,1,1,1,1,1,1,0,0,1,1,1,1],
+     [1,1,1,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,1,1,1],
+     [1,1,0,0,0,0,0,0,1,1,0,0,0,0,0,0,0,1,1,0,0,0,0,1,0],
+     [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+     [1,1,1,1,0,0,0,1,1,1,1,1,1,0,0,0,0,0,0,0,0,0,0,0,0],
+     [1,1,1,1,1,1,1,1,1,1,1,1,1,0,0,0,0,0,0,0,0,1,1,1,0],
+     [1,1,1,1,1,0,1,1,1,1,1,1,1,0,0,0,0,0,0,0,0,1,1,1,0],
+     [1,1,1,1,1,1,1,1,1,1,1,1,1,0,0,0,0,1,1,1,1,0,0,0,0],
+     [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+     [0,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
+     [0,0,0,0,0,0,0,0,0,0,1,1,1,1,1,1,1,1,1,0,0,0,0,0,0],
+     [1,1,1,1,1,1,0,0,0,0,1,1,1,1,1,1,1,1,1,0,0,1,1,0,0],
+     [1,1,1,1,1,1,0,0,0,0,1,1,1,1,1,1,1,1,1,0,0,0,0,0,0],
+     [1,1,1,1,1,1,0,0,0,0,1,1,1,1,1,1,1,1,1,1,1,1,0,0,0],
+     [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],
+     [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+     [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+     [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+     [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+     [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+     [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]]
+
 component = {
         0: "No Components Found",
         1: "Camera",
@@ -90,7 +116,7 @@ component = {
         6: "Communication"    
         }
 # Load background image
-background_image = pygame.image.load(os.path.join("assets", "map1.png")).convert()
+background_image = pygame.image.load(os.path.join("assets", "map.jpg")).convert()
 background_image = pygame.transform.scale(background_image, (GAME_AREA_WIDTH, GAME_AREA_HEIGHT))
 
 # Load arrow images
@@ -413,7 +439,7 @@ class Character(pygame.sprite.Sprite):
 
         # Check boundaries and grid value
         if (0 <= new_grid_x < GRID_SIZE and 0 <= new_grid_y < GRID_SIZE
-                and grid[new_grid_y][new_grid_x] == 0):  # Ensure target grid value is 0
+                and grid1[new_grid_y][new_grid_x] == 0):  # Ensure target grid value is 0
             self.grid_x = new_grid_x
             self.grid_y = new_grid_y
             self.target_x = self.grid_x * TILE_SIZE
