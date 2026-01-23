@@ -1,11 +1,12 @@
 from langchain.prompts import PromptTemplate
 from langchain.chat_models import ChatOpenAI
+from langchain_anthropic import ChatAnthropic
 from langchain.chains import LLMChain
 from dotenv import load_dotenv
 import copy
 
 load_dotenv()
-
+#chat = ChatAnthropic(model="claude-3-5-haiku-20241022", temperature=0.2)
 chat = ChatOpenAI(model_name="gpt-4o", temperature=0.2)
 
 class ComponentManager:
@@ -48,7 +49,7 @@ class ComponentManager:
         system_prompt = f"""
         You are Atlas, a Robot AI. The player {user} has just added the '{comp}' component.
         Give a Description About the Component you have obtained.
-        Respond in 2 lines only.
+        Respond in 1 lines only.
         """
 
         prompt_template = PromptTemplate(
@@ -123,7 +124,7 @@ The user's current input is: "{user_input}"
 
 ---
 
-Respond in 2 lines appropriately based on the components available.
+Respond in one line appropriately based on the components available. Dont even explain in Natural language if u dont have NLP. Never talk gibberish if u have NLP 
         """
         return system_prompt
 

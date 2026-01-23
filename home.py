@@ -119,7 +119,7 @@ component = {
         3: "ALU",
         4: "Data Storage",
         5: "NLP",
-        6: "Communication"    
+        6: "Communication"
         }
 # Load background image
 background_image = pygame.image.load(os.path.join("assets", "map.jpg")).convert()
@@ -167,17 +167,17 @@ overlay_image = pygame.transform.scale(overlay_image, (150, 150))  # Same size a
 # Load the collect image
 collect_image = pygame.image.load("assets/collect.png").convert_alpha()
 collect_image = pygame.transform.scale(collect_image, (150, 50))  # Adjust size as needed
-COLLECT_IMAGE_X = GAME_AREA_WIDTH + 100  # Horizontal center of game area
-COLLECT_IMAGE_Y = GAME_AREA_HEIGHT - 525 # 150 pixels from bottom of game area
+COLLECT_IMAGE_X = GAME_AREA_WIDTH + 100 # Horizontal center of game area
+COLLECT_IMAGE_Y = GAME_AREA_HEIGHT - 520 # 150 pixels from bottom of game area
 
 # Define overlay position coordinates directly
-overlay_x =  1380
-overlay_y =  90
+overlay_x =  1675
+overlay_y =  287
 overlay_rect = overlay_image.get_rect(topleft=(overlay_x, overlay_y))
 
 FONT_SIZE = 24
 TEXT_COLOR = (255, 255, 255)  # White text
-TEXT_POSITION = (GAME_AREA_WIDTH + 50, 325)  # Position in right panel
+TEXT_POSITION = (GAME_AREA_WIDTH + 75, 1000)  # Position in right panel
 font = pygame.font.Font("C:/Windows/Fonts/Arial.ttf", FONT_SIZE)
 # Function to render text
 def draw_text(screen, text, position):
@@ -311,7 +311,7 @@ class OutputBox:
         self.rect = pygame.Rect(x, y, w, h)
         self.color = INPUT_BOX_COLOR_INACTIVE
         self.text = []  # List to store messages
-        self.font = pygame.font.Font(None, 16)
+        self.font = pygame.font.Font(None, 24)
         self.line_height = 35
         self.padding = 10
         self.visible_lines = (h - 2 * self.padding) // self.line_height
@@ -628,7 +628,6 @@ while running:
             render_ai_dialog(screen, current_ai_text)
 
         
-        print(len_return_txt)
     else:
         close_dialog()
         spoke = False  # Reset the flag when no component is selected
@@ -653,11 +652,11 @@ while running:
     output_box.draw(screen)
     
     if state == 0:
-        TEXT_POSITION = (GAME_AREA_WIDTH + 50, 325)
+        TEXT_POSITION = (GAME_AREA_WIDTH + 50, 525)
     elif state == 2 or state == 3 or state == 5:
-        TEXT_POSITION = (GAME_AREA_WIDTH + 70, 325)
+        TEXT_POSITION = (GAME_AREA_WIDTH + 100, 525)
     else:
-        TEXT_POSITION = (GAME_AREA_WIDTH + 100, 325)
+        TEXT_POSITION = (GAME_AREA_WIDTH + 100, 525)
     draw_text(screen, component[state], TEXT_POSITION)
 
 
